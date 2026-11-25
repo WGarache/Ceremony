@@ -1,0 +1,2338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrada a la Graduación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f1e9;
+    --card: #ffffff;
+    --ink: #2b2a33;
+    --muted: #6b6676;
+    --line: #e7dfd3;
+    --navy: #24396b;
+    --navy-soft: #e9eef8;
+    --coral: #d0603f;
+    --coral-soft: #fdeee9;
+    --gold-soft: #fff4d6;
+    --blue: #2563eb;
+    --green: #2f855a;
+    --green-soft: #e5f4ea;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .wrap { max-width: 1340px; margin: 0 auto; padding: 16px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 4px 18px rgba(80, 60, 30, 0.06);
+  }
+
+  header.card { padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; justify-content: space-between; }
+  .title h1 { margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.01em; }
+  .title p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button {
+    font: inherit; cursor: pointer; border-radius: 12px; border: 1px solid var(--line);
+    background: #fff; color: var(--ink); padding: 9px 14px; font-weight: 800; font-size: 14px;
+    transition: background .15s, transform .05s;
+  }
+  button:hover { background: #f8f4ee; }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  select {
+    font: inherit; cursor: pointer; border-radius: 12px; border: 1px solid var(--line);
+    background: #fff; color: var(--ink); padding: 9px 12px; font-weight: 800; font-size: 14px;
+  }
+  .steps.fin li b.n { background: var(--green); }
+  .btn-main { background: var(--navy); color: #fff; border-color: var(--navy); min-width: 120px; }
+  .btn-main:hover { background: #1b2c55; }
+  .speed { display: inline-flex; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+  .speed button { border: 0; border-radius: 0; padding: 9px 12px; font-weight: 700; color: var(--muted); }
+  .speed button.on { background: var(--navy-soft); color: var(--navy); }
+  .speed-label { font-size: 13px; color: var(--muted); font-weight: 700; margin-right: 2px; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+  .stat { padding: 10px 14px; display: flex; align-items: center; gap: 12px; }
+  .stat .ico { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; }
+  .stat .lbl { font-size: 12.5px; color: var(--muted); font-weight: 700; line-height: 1.2; }
+  .stat .val { font-size: 20px; font-weight: 900; line-height: 1.15; }
+  .stat .val small { font-size: 13px; color: var(--muted); font-weight: 700; }
+  @media (max-width: 760px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  /* Escritorio: plano a la izquierda, panel a la derecha, pasos abajo.
+     Pantallas angostas: plano, luego "Ahora mismo" y buscador, luego los pasos. */
+  .layout {
+    display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; margin-top: 16px; align-items: start;
+    grid-template-areas: "plan side" "s1 s1" "s2 s2" "s3 s3";
+  }
+  .main-col { display: contents; }
+  .plan-card { grid-area: plan; min-width: 0; }
+  .side { grid-area: side; }
+  .steps { grid-area: s1; }
+  .steps.cer { grid-area: s2; }
+  .steps.fin { grid-area: s3; }
+  @media (max-width: 1060px) {
+    .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "plan" "side" "s1" "s2" "s3"; }
+  }
+
+  .plan-wrap { position: relative; }
+  .zoom-ctl { position: absolute; bottom: 8px; right: 8px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 16px); }
+  .zoom-ctl button {
+    min-width: 40px; height: 40px; padding: 0 10px; border-radius: 12px; font-size: 17px; line-height: 1;
+    background: rgba(255,255,255,0.94); box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  .zoom-ctl button.follow { font-size: 13.5px; }
+  .zoom-ctl button.follow.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .hint-touch { display: none; }
+  @media (hover: none) { .hint-touch { display: inline; } .hint-mouse { display: none; } }
+
+  /* Aviso para girar el teléfono */
+  .rotate-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000; background: var(--navy); color: #fff;
+    flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px;
+  }
+  .rotate-overlay h2 { margin: 14px 0 8px; font-size: 26px; font-weight: 900; }
+  .rotate-overlay p { margin: 6px 0; font-size: 17px; max-width: 340px; }
+  .rotate-overlay .small { font-size: 14.5px; opacity: .85; margin-top: 14px; }
+  .rot-icon { font-size: 64px; animation: rot 2.4s ease-in-out infinite; }
+  @keyframes rot { 0%, 20% { transform: rotate(0); } 50%, 75% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+  @media (max-width: 760px) and (orientation: portrait) {
+    .rotate-overlay { display: flex; }
+    body { overflow: hidden; }
+  }
+
+  /* Pantalla completa: solo el aviso de la carrera y el plano */
+  body.fs-on { overflow: hidden; }
+  .plan-card.fs {
+    position: fixed; inset: 0; z-index: 500; border-radius: 0; border: 0; margin: 0;
+    display: flex; flex-direction: column; background: #f3ece1;
+  }
+  .plan-card.fs .banner { border-radius: 0; padding: 8px 14px; min-height: 0; flex-shrink: 0; flex-wrap: nowrap; }
+  .plan-card.fs .banner .big { font-size: 18px; }
+  .plan-card.fs .banner .sub { font-size: 12.5px; }
+  .plan-card.fs .canvas-box { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 6px; }
+  .plan-card.fs .plan-wrap { flex: 1; min-height: 0; }
+  .plan-card.fs canvas { position: absolute; inset: 0; height: 100% !important; }
+  .plan-card.fs .hint, .plan-card.fs .legend { display: none; }
+
+  @media (max-width: 760px) {
+    .wrap { padding: 10px; }
+    header.card { padding: 12px 14px; gap: 10px; }
+    .title h1 { font-size: 18px; }
+    .title p { font-size: 13px; }
+    .controls { gap: 6px; }
+    .controls button, select { padding: 8px 10px; font-size: 13px; }
+    .speed-label { display: none; }
+    .speed button { padding: 8px 9px; }
+    .stats { gap: 8px; margin-top: 10px; }
+    .stat { padding: 8px 10px; gap: 8px; }
+    .stat .ico { width: 32px; height: 32px; }
+    .stat .val { font-size: 17px; }
+    .layout { gap: 12px; margin-top: 12px; }
+    .banner { padding: 10px 12px; gap: 10px; min-height: 0; flex-wrap: wrap; border-left-width: 6px; }
+    .banner .big { font-size: 16.5px; }
+    .banner .sub { font-size: 12.5px; }
+    .canvas-box { padding: 6px; }
+    .legend { font-size: 12.5px; gap: 8px 14px; padding: 10px 12px; }
+    .steps { padding: 14px; }
+    .steps li { font-size: 14px; }
+    .side .card { padding: 14px; }
+  }
+
+  .banner {
+    display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+    border-left: 8px solid #c8b597; border-radius: 18px 18px 0 0; border-bottom: 1px solid var(--line);
+    background: #fffdf9; min-height: 74px; position: relative; overflow: hidden;
+  }
+  .banner .chip {
+    font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .06em;
+    padding: 4px 10px; border-radius: 999px; background: #f1e8da; color: #7a6346; white-space: nowrap;
+  }
+  .banner .chip.pause { background: var(--gold-soft); color: #8a6200; }
+  .banner .chip.live { background: var(--green-soft); color: var(--green); }
+  .banner .chip.cer { background: #efe7fb; color: #6a3fb5; }
+  .banner .big { font-size: 20px; font-weight: 900; line-height: 1.15; }
+  .banner .sub { font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  .banner .bar { position: absolute; left: 0; bottom: 0; height: 5px; background: #e9b949; width: 0; }
+  .canvas-box { background: #f3ece1; padding: 10px; }
+  canvas { display: block; width: 100%; touch-action: none; border-radius: 12px; }
+  .hint { font-size: 13px; color: var(--muted); text-align: center; padding: 8px 12px 0; }
+  .toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 700; color: var(--muted); cursor: pointer; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 22px; padding: 12px 16px; border-top: 1px solid var(--line); font-size: 13.5px; font-weight: 600; }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .chair-ico { width: 20px; height: 20px; border-radius: 5px; background: #efe3d1; border: 1.5px solid #cdb89a; display: inline-block; }
+  .chair-ico.empty { background: var(--gold-soft); border: 1.5px dashed #d9a441; }
+  .chair-ico.guest { background: #ece9e4; border-color: #cfc8bd; }
+
+  .steps { padding: 16px 18px; }
+  .steps h2, .side h2 { margin: 0 0 10px; font-size: 17px; font-weight: 900; }
+  .steps ol { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px 18px; }
+  .steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 14.5px; }
+  .steps li b.n {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--navy); color: #fff; font-weight: 900; font-size: 14px;
+  }
+  .steps.cer li b.n { background: #6a3fb5; }
+  .tag-g { color: var(--navy); font-weight: 800; }
+  .tag-c { color: var(--coral); font-weight: 800; }
+
+  .side { display: flex; flex-direction: column; gap: 16px; }
+  .side .card { padding: 16px; }
+  .now-career { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; padding: 4px 10px; border-radius: 999px; background: #f4efe7; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .now-text { margin-top: 10px; font-size: 16px; }
+  .now-text .where { display: block; margin-top: 6px; font-size: 15px; color: var(--muted); }
+  .now-text .alone { display: block; margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: var(--gold-soft); color: #7a5600; font-size: 14px; font-weight: 600; }
+  .now-text .mc { display: block; margin-bottom: 8px; padding: 8px 10px; border-radius: 10px; background: #efe7fb; color: #4e2a8e; font-size: 15px; font-weight: 800; }
+
+  input[type=search] {
+    width: 100%; font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 12px;
+    border: 1.5px solid var(--line); background: #fffdf9; outline: none;
+  }
+  input[type=search]:focus { border-color: var(--blue); }
+  .results { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .results button { text-align: left; font-weight: 700; padding: 8px 10px; font-size: 14px; display: flex; gap: 8px; align-items: center; }
+  .results .meta { color: var(--muted); font-weight: 600; font-size: 13px; margin-left: auto; text-align: right; }
+  .detail { margin-top: 12px; }
+  .empty-msg { color: var(--muted); font-size: 14px; background: #faf6ef; border-radius: 12px; padding: 12px; }
+  .person-box { border-radius: 12px; padding: 10px 12px; margin-top: 8px; }
+  .person-box.g { background: var(--navy-soft); border: 1px solid #c9d4ec; }
+  .person-box.c { background: var(--coral-soft); border: 1px solid #f2c4b5; }
+  .person-box.none { background: var(--gold-soft); border: 1px dashed #d9a441; }
+  .person-box .who { font-size: 12.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+  .person-box .name { font-size: 18px; font-weight: 900; }
+  .person-box .seat { font-size: 14px; }
+  .person-box .title-ok { margin-top: 4px; font-size: 13px; font-weight: 800; color: var(--green); }
+  .state { float: right; font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #fff; color: var(--muted); }
+  .state.walking, .state.called, .state.returning { color: var(--blue); }
+  .state.seated { color: var(--green); }
+  .state.standing, .state.ready { color: #8a6200; }
+  .state.onstage { color: #6a3fb5; }
+  .route { margin-top: 10px; font-size: 14px; color: #4a4655; background: #faf6ef; border-radius: 12px; padding: 10px 12px; }
+  .route + .route { margin-top: 8px; }
+
+  .careers { display: flex; flex-direction: column; gap: 6px; }
+  .career-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: #faf6ef; border: 1px solid transparent; }
+  .career-row.entering { background: #fff; border-color: currentColor; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+  .career-row .num { font-weight: 900; color: var(--muted); width: 18px; text-align: right; font-size: 13px; }
+  .career-row .nm { font-weight: 800; font-size: 14px; color: var(--ink); line-height: 1.2; }
+  .career-row .info { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+  .career-row .st { margin-left: auto; font-size: 12px; font-weight: 800; white-space: nowrap; color: var(--muted); }
+  .career-row.done .st { color: var(--green); }
+  .career-row.entering .st { color: var(--blue); }
+</style>
+</head>
+<body>
+<!-- En el teléfono en vertical: se pide girarlo -->
+<div class="rotate-overlay" role="dialog" aria-label="Gira tu teléfono">
+  <div class="rot-icon">📱</div>
+  <h2>Gira tu teléfono</h2>
+  <p>Esta simulación se ve en <b>horizontal</b>.<br>Gira el teléfono para continuar.</p>
+  <p class="small">Después toca <b>«⛶ Pantalla completa»</b> para ver en grande el pasillo de entrada y el escenario.</p>
+</div>
+<div class="wrap">
+
+  <header class="card">
+    <div class="title">
+      <h1>🎓 Ceremonia de Graduación: paso a paso</h1>
+      <p>Entrada, entrega de títulos, salida por carrera y foto grupal: quién va, por dónde camina y dónde se ubica.</p>
+    </div>
+    <div class="controls">
+      <button id="btn-play" class="btn-main">▶ Iniciar</button>
+      <button id="btn-reset" title="Vuelve a empezar y elige otros 4 graduandos sin acompañante">↺ Empezar de nuevo</button>
+      <select id="jump" title="Ir directo a una parte de la ceremonia">
+        <option value="">⏭ Ir directo a…</option>
+        <option value="cer">Parte 2 · Entrega de títulos</option>
+        <option value="exit">Parte 3 · Salida por carrera</option>
+        <option value="photo">Parte 3 · Foto grupal</option>
+      </select>
+      <span class="speed-label">Velocidad:</span>
+      <div class="speed" role="group" aria-label="Velocidad">
+        <button data-speed="1" class="on">Normal</button>
+        <button data-speed="3">Rápida</button>
+        <button data-speed="6">Muy rápida</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="stats">
+    <div class="card stat">
+      <div class="ico" style="background:var(--navy-soft)"><svg width="26" height="26" viewBox="-13 -15 26 28"><g id="ico-grad"></g></svg></div>
+      <div><div class="lbl">Graduandos sentados</div><div class="val" id="stat-grad">0 <small>de 0</small></div></div>
+    </div>
+    <div class="card stat">
+      <div class="ico" style="background:var(--coral-soft)"><svg width="26" height="26" viewBox="-13 -15 26 28"><g id="ico-comp"></g></svg></div>
+      <div><div class="lbl">Acompañantes sentados</div><div class="val" id="stat-comp">0 <small>de 0</small></div></div>
+    </div>
+    <div class="card stat">
+      <div class="ico" style="background:var(--gold-soft)"><span class="chair-ico empty"></span></div>
+      <div><div class="lbl">Sin acompañante<br>(ejemplo al azar)</div><div class="val" id="stat-solo">4</div></div>
+    </div>
+    <div class="card stat">
+      <div class="ico" style="background:#efe7fb;font-size:20px">📜</div>
+      <div><div class="lbl">Títulos entregados</div><div class="val" id="stat-title">0 <small>de 0</small></div></div>
+    </div>
+  </section>
+
+  <div class="layout">
+    <div class="main-col">
+      <div class="card plan-card">
+        <div class="banner" id="banner">
+          <span class="chip" id="banner-chip">Listo</span>
+          <div>
+            <div class="big" id="banner-big">Presiona «Iniciar» para ver la entrada</div>
+            <div class="sub" id="banner-sub">Las carreras entran una por una, con una pequeña pausa entre cada una.</div>
+          </div>
+          <div class="bar" id="banner-bar"></div>
+        </div>
+        <div class="canvas-box">
+          <div class="plan-wrap">
+            <canvas id="plan" aria-label="Plano del auditorio: escenario, filas de graduandos, acompañantes, invitados y lobby"></canvas>
+            <div class="zoom-ctl" role="group" aria-label="Controles del plano">
+              <button id="z-play" title="Iniciar / pausar">▶</button>
+              <button id="z-in" title="Acercar">＋</button>
+              <button id="z-out" title="Alejar">－</button>
+              <button id="z-fit" title="Ver todo el plano">⤢</button>
+              <button id="z-follow" class="follow" title="La cámara sigue lo que está pasando">🎥 Seguir</button>
+              <button id="z-fs" class="follow" title="Ver solo el plano, del pasillo de entrada al escenario">⛶ Pantalla completa</button>
+            </div>
+          </div>
+          <div class="hint">
+            <span class="hint-mouse">👆 Pasa el cursor o haz clic sobre una persona o silla para ver de quién es. Ctrl + rueda para acercar.</span>
+            <span class="hint-touch">👆 Toca a una persona o silla para ver de quién es. Con dos dedos acercas; con un dedo te mueves.</span>
+            &nbsp;·&nbsp;
+            <label class="toggle"><input type="checkbox" id="chk-guides" checked> Mostrar caminos</label>
+          </div>
+        </div>
+        <div class="legend">
+          <span><svg width="22" height="26" viewBox="-11 -15 22 26"><g id="lg-grad"></g></svg> Graduando (con birrete): lado derecho</span>
+          <span><svg width="22" height="26" viewBox="-11 -15 22 26"><g id="lg-comp"></g></svg> Acompañante («A» + apellido): lado izquierdo</span>
+          <span><i class="chair-ico"></i> Silla libre (con su número)</span>
+          <span><i class="chair-ico empty"></i> Silla que queda vacía (vino sin acompañante)</span>
+          <span><i class="chair-ico guest"></i> Invitados en general</span>
+          <span>📜 Ya recibió su título</span>
+        </div>
+      </div>
+
+      <section class="card steps">
+        <h2>Parte 1 · La entrada, paso a paso</h2>
+        <ol>
+          <li><b class="n">1</b><div><b>Se entra por carrera</b>, en el orden de la lista de la derecha. Entre una carrera y la siguiente hay una <b>pequeña pausa</b>.</div></li>
+          <li><b class="n">2</b><div>Dentro de cada carrera se entra en <b>orden alfabético por apellido</b>. Cada graduando entra <b>junto a su acompañante</b>.</div></li>
+          <li><b class="n">3</b><div>Afuera, en el <b>lobby</b>, se organiza el orden. Todos entran por la <b>puerta del costado izquierdo</b>, que está <b>entre las filas de acompañantes y las de invitados</b>, y caminan juntos por el <b>pasillo del centro</b> (la alfombra) hasta el frente.</div></li>
+          <li><b class="n">4</b><div>El <span class="tag-g">graduando</span> se sienta del <b>lado derecho</b> y su <span class="tag-c">acompañante</span> del <b>lado izquierdo</b>, en la <b>misma fila y con el mismo número de silla</b>. La silla 1 es la que está junto al pasillo del centro.</div></li>
+          <li><b class="n">5</b><div><b>Fila 1:</b> desde el frente pasan directo a su silla. <b>Fila 2 en adelante:</b> al llegar al frente se separan; el graduando sigue por el pasillo de la derecha y el acompañante por el de la izquierda, bajan hasta su fila y entran desde la orilla.</div></li>
+          <li><b class="n">6</b><div>Si un graduando viene <b>sin acompañante</b>, la silla de su acompañante <b>queda vacía</b>. Las filas de atrás, separadas por un pequeño espacio, son para los <b>invitados en general</b>.</div></li>
+        </ol>
+      </section>
+
+      <section class="card steps cer">
+        <h2>Parte 2 · La entrega de títulos, paso a paso</h2>
+        <ol>
+          <li><b class="n">1</b><div>Cuando todos están sentados, el maestro de ceremonia dice: <b>«Ahora haremos entrega de su título…»</b>. En ese momento <b>toda la Fila 1 se pone de pie</b>.</div></li>
+          <li><b class="n">2</b><div>El <b>primer graduando</b> de la fila sale al <b>pasillo del centro</b> y se une a su <b>acompañante</b>, que sale por el otro lado. Ahí <b>esperan a ser llamados</b>. <b>Desde la Fila 5</b>, cuando una pareja pasa al frente, la siguiente ya sale al pasillo a esperar su turno.</div></li>
+          <li><b class="n">3</b><div>Los demás de la fila <b>se corren hacia el centro</b>, ocupando el espacio que dejó el que salió. Así, el siguiente siempre queda junto al pasillo, listo para salir.</div></li>
+          <li><b class="n">4</b><div>Al escuchar su nombre, caminan al frente y <b>suben por las escaleras de la derecha</b>.</div></li>
+          <li><b class="n">5</b><div>En el <b>centro del escenario</b> las <b>autoridades</b> entregan el título.</div></li>
+          <li><b class="n">6</b><div>Siguen hacia la izquierda, pasan <b>por detrás de las banderas</b> (detrás del maestro de ceremonia) y <b>bajan por la rampa</b> de la izquierda.</div></li>
+          <li><b class="n">7</b><div>El <span class="tag-c">acompañante</span> regresa por el <b>costado izquierdo</b> a su fila y se queda <b>de pie en la orilla</b>.</div></li>
+          <li><b class="n">8</b><div>El <span class="tag-g">graduando</span> sigue por el costado izquierdo, <b>rodea por detrás</b> todas las filas de graduandos y acompañantes, y entra a su fila por el <b>costado derecho</b>.</div></li>
+          <li><b class="n">9</b><div>Cada vez que sale alguien, la fila se corre hacia el centro (también los que ya regresaron). Las <b>sillas que estaban vacías siguen vacías</b> y se corren con la fila. Al final, <b>cada uno queda de nuevo en su silla</b> y la fila <b>se sienta</b>.</div></li>
+          <li><b class="n">10</b><div><b>Sin pausas entre filas:</b> cuando el último de una fila espera su llamado, la <b>siguiente fila se pone de pie</b> y su primer graduando pasa al centro para tomar su lugar. <b>Desde la Fila 3</b>, esperan al centro, <b>a la altura de la Fila 1</b>.</div></li>
+        </ol>
+      </section>
+
+      <section class="card steps fin">
+        <h2>Parte 3 · Salida y foto grupal, paso a paso</h2>
+        <ol>
+          <li><b class="n">1</b><div>Cuando todas las filas recibieron su título, el maestro de ceremonia llama a cada carrera: <b>«¡Licenciados en …!»</b>.</div></li>
+          <li><b class="n">2</b><div>Se sale <b>por carrera</b>, en el <b>mismo orden en que se entró</b>. Al escuchar su carrera salen <b>uno tras otro, sin esperar</b>: cada licenciado se une a su acompañante en el centro y salen <b>por el pasillo del centro</b> hacia la <b>misma puerta</b> por la que entraron.</div></li>
+          <li><b class="n">·</b><div>Si en la fila hay alguien <b>de otra carrera</b>, se pone <b>de pie</b> y se corre hasta el <b>asiento junto al pasillo</b>. Ahí espera hasta que llamen a su carrera.</div></li>
+          <li><b class="n">3</b><div>Después los licenciados son llamados de nuevo para la <b>foto grupal</b>. Entran por la <b>puerta lateral que está junto a la rampa</b> y <b>suben al escenario por la rampa</b>.</div></li>
+          <li><b class="n">4</b><div>Después de la foto <b>bajan por las escaleras de la derecha</b>, para dejar espacio a la siguiente carrera.</div></li>
+          <li><b class="n">5</b><div>Carreras con pocos licenciados se juntan en una sola foto: <b>Gestión de la Información con Antropología Social</b> y <b>Geografía con Historia</b>.</div></li>
+          <li><b class="n">6</b><div>Las tres carreras más grandes (<b>Derecho, Psicología y Ciencia Política y Relaciones Internacionales</b>) se dividen para la misma foto: <b>la mitad arriba del escenario y la otra mitad abajo</b>, al frente.</div></li>
+        </ol>
+      </section>
+    </div>
+
+    <aside class="side">
+      <div class="card">
+        <h2>Ahora mismo</h2>
+        <div id="now-career" class="now-career"><span class="dot" style="background:#c8b597"></span><span>Aún no empieza</span></div>
+        <div id="now-text" class="now-text">Cuando presiones «Iniciar» verás aquí quién está entrando y a qué silla va.</div>
+      </div>
+
+      <div class="card">
+        <h2>Busca un lugar</h2>
+        <input type="search" id="search" placeholder="Escribe un apellido, por ejemplo: Rosales" autocomplete="off">
+        <div class="results" id="results"></div>
+        <div class="detail" id="detail"></div>
+      </div>
+
+      <div class="card">
+        <h2>Orden por carrera</h2>
+        <div class="careers" id="careers"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+// ===========================================================================
+// DATOS: primer apellido de cada graduando (columna B del Excel), agrupados
+// por carrera en el orden del listado y en orden alfabético dentro de cada una.
+// ===========================================================================
+const CAREERS = [
+  ["Comunicación para el Desarrollo", ["Avendaño","Bustamante","Esquivel","Gómez","Ortega","Prendis","Rosales","Rosales","Serrano","Solis","Vanegas"]],
+  ["Gestión de la Información", ["Areas","Martínez","Morales","Ortiz"]],
+  ["Antropología Social", ["Soza"]],
+  ["Ciencia Política y Relaciones Internacionales", ["Aguilar","Benavides","Calero","Castillo","Castillo","Chavez","Chávez","Duarte","Gaitán","Granados","Gutiérrez","Jarquín","Mairena","Martínez","Montes","Osorio","Potosme","Rodríguez","Salgado","Sánchez","Soto","Velasquez"]],
+  ["Geografía", ["Mercado"]],
+  ["Historia", ["Aburto","Aguirre","Corea","Malespin","Márquez","Martinez","Membreño","Muñoz","Pastran"]],
+  ["Derecho", ["Aburto","Acevedo","Chávez","Cruz","Garcia","Gómez","Huerta","Loaisiga","López","López","Madrigal","Maltez","Mendez","Meneses","Montiel","Mora","Morales","Moreno","Ortiz","Peralta","Perez","Pérez","Ríos","Rivera","Sánchez","Sanders","Sandino","Sandoval","Tercero","Umaña","Vásquez","Velasquez"]],
+  ["Psicología", ["Alizaga","Argeñal","Az","Brenes","Castrillo","Cruz","Dávila","Fisher","Gutiérrez","Jarquin","Lacayo","Lezama","López","Marenco","Martinez","Martínez","Mena","Muller","Obando","Obando","Plata","Ramos","Rojas","Rojas","Torres","Torrez","Ulloa","Vargas"]],
+  ["Trabajo Social", ["Altamirano","Corea","Cruz","Delgado","Herrera","Jiménez","López","Mendoza","Montes","Reyes","Reyes","Torrez"]]
+];
+const CAREER_COLORS = ['#2a9d8f', '#e09f3e', '#8e6cc0', '#d1495b', '#3a86c8', '#6a994e', '#c0587e', '#9c6b30', '#4f6d7a'];
+
+const CONFIG = {
+  seatsPerRow: 15,
+  minTotalRows: 18,      // mínimo de filas en el salón (graduandos + invitados)
+  soloCount: 4,          // graduandos sin acompañante (se sortean en cada reinicio)
+  spawnInterval: 0.75,   // segundos entre cada pareja al entrar
+  exitInterval: 0.45,    // segundos entre cada pareja al salir (uno tras otro)
+  careerPause: 2.6,      // pausa entre carreras, cuando la anterior ya está sentada
+  firstPause: 2.2,       // pausa antes de la primera carrera
+  walkSpeed: 150,        // velocidad al entrar
+  cerSpeed: 1.6,         // multiplicador de velocidad en la entrega de títulos
+  receiveTime: 1.5,      // segundos frente a las autoridades
+  rowStandTime: 2.4      // tiempo para que la fila se ponga de pie
+};
+
+const SP = CONFIG.seatsPerRow;
+const TOTAL = CAREERS.reduce((a, c) => a + c[1].length, 0);
+const ROWS = Math.ceil(TOTAL / SP);
+const GUEST_ROWS = Math.max(CONFIG.minTotalRows - ROWS, 4);
+const LOBBY_W = 112;   // ancho del lobby (afuera, a la izquierda del auditorio)
+const LOBBY_SAMPLE = 8; // cuántas personas (o parejas) se muestran esperando en el lobby
+const SKINS = ['#f1c9a0', '#e0ac69', '#c68642', '#a96c3f', '#8d5524', '#f5d3b3'];
+const HAIRS = ['#3b2a20', '#1f1a17', '#6b4423', '#a0522d', '#4a3b33', '#2e2e2e'];
+const GUEST_CLOTHES = ['#9aa7b4', '#b3a89a', '#a3b19b', '#b49aa6', '#9fa9c2', '#c2b49a'];
+
+const CAREER_INFO = (() => {
+  let start = 0;
+  return CAREERS.map(([name, list], i) => {
+    const info = {
+      name, count: list.length, color: CAREER_COLORS[i % CAREER_COLORS.length],
+      rowFrom: Math.floor(start / SP) + 1,
+      rowTo: Math.floor((start + list.length - 1) / SP) + 1
+    };
+    start += list.length;
+    return info;
+  });
+})();
+
+// ===========================================================================
+// GEOMETRÍA DEL AUDITORIO (arriba = frente / escenario)
+// ===========================================================================
+const GEO = (() => {
+  const W = 940;
+  const centerX = W / 2;
+  const aisleHalf = 28;
+  const outerMargin = 44;
+  const blockW = centerX - aisleHalf - outerMargin;
+  const leftOuterX = outerMargin / 2;
+  const rightOuterX = W - outerMargin / 2;
+
+  // Escenario a todo lo ancho; escaleras a la derecha (subida) y rampa a la izquierda (bajada)
+  const stage = { x: 12, y: 10, w: W - 24, h: 100 };
+  const stairs = { x: W - 72, y: 104, w: 54, h: 36 };
+  const ramp = { x: 18, y: 104, w: 54, h: 46 };
+  const stageWalkY = 90;          // camino por el frente del escenario
+  const backWalkY = 22;           // camino por detrás de las banderas
+  const flags = { x: 104, y: 28, w: 76 };
+  const mc = { x: 222, y: 76 };
+  const auth = { x: centerX, y: 50 };
+  const topCorridorY = 158;
+
+  const padX = 10, gapX = 3.5;
+  const seatW = (blockW - padX * 2 - gapX * (SP - 1)) / SP;
+
+  // Filas de graduandos y acompañantes
+  const gY = 172, gPad = 28, gPitch = 38, gSeatH = 22;
+  const gH = gPad + (ROWS - 1) * gPitch + gSeatH + 10;
+  // Pasillo de separación (aquí está la puerta de entrada, en el costado izquierdo) y filas de invitados
+  const sep = 30;
+  const vY = gY + gH + sep, vPad = 26, vPitch = 30, vSeatH = 18;
+  const vH = vPad + (GUEST_ROWS - 1) * vPitch + vSeatH + 10;
+  const H = vY + vH + 16;
+
+  const blocks = {
+    comp: { x: outerMargin, y: gY, w: blockW, h: gH },
+    grad: { x: centerX + aisleHalf, y: gY, w: blockW, h: gH },
+    guestL: { x: outerMargin, y: vY, w: blockW, h: vH },
+    guestR: { x: centerX + aisleHalf, y: vY, w: blockW, h: vH }
+  };
+
+  const seats = { comp: [], grad: [] };
+  const rowLabels = [];
+  for (let r = 0; r < ROWS; r++) {
+    const sy = gY + gPad + r * gPitch;
+    rowLabels.push({ row: r + 1, y: sy + gSeatH / 2 });
+    for (let s = 1; s <= SP; s++) {
+      const n = r * SP + s;
+      const lx = blocks.comp.x + padX + (SP - s) * (seatW + gapX);
+      const rx = blocks.grad.x + padX + (s - 1) * (seatW + gapX);
+      const base = { n, row: r + 1, rowIndex: r, seatNum: s, y: sy, w: seatW, h: gSeatH, cy: sy + gSeatH / 2, laneY: sy - 8 };
+      seats.comp[n] = { ...base, side: 'comp', x: lx, cx: lx + seatW / 2 };
+      seats.grad[n] = { ...base, side: 'grad', x: rx, cx: rx + seatW / 2 };
+    }
+  }
+  const guestSeats = [];
+  let k = 0;
+  for (let r = 0; r < GUEST_ROWS; r++) {
+    const sy = vY + vPad + r * vPitch;
+    rowLabels.push({ row: ROWS + r + 1, y: sy + vSeatH / 2, guest: true });
+    for (let s = 0; s < SP; s++) {
+      for (const bx of [blocks.guestL.x, blocks.guestR.x]) {
+        const x = bx + padX + s * (seatW + gapX);
+        k++;
+        guestSeats.push({
+          x, y: sy, w: seatW, h: vSeatH, cx: x + seatW / 2, cy: sy + vSeatH / 2,
+          skin: SKINS[(k * 7) % SKINS.length], hair: HAIRS[(k * 5) % HAIRS.length],
+          body: GUEST_CLOTHES[(k * 3 + r) % GUEST_CLOTHES.length]
+        });
+      }
+    }
+  }
+  const gapY = gY + gH + sep / 2;  // pasillo entre acompañantes/graduandos e invitados (puerta de entrada)
+  const door2Y = topCorridorY + 4; // puerta lateral junto a la rampa (foto grupal)
+  const photoStageY = 82, photoFloorY = 132;
+  // Lobby: afuera del auditorio, a la izquierda. Ahí se organiza el orden.
+  const lobby = { x: -LOBBY_W + 6, y: 112, w: LOBBY_W - 14, h: H - 112 - 8 };
+  // Solo una MUESTRA de quienes esperan (referencial), para no saturar el lobby
+  const lobbySlots = (() => {
+    const s1 = [];   // entrada: parejas en fila hacia la puerta (de la puerta hacia arriba)
+    for (let k = 0; k < LOBBY_SAMPLE; k++) s1.push({ x: -40, y: gapY - k * 24 });
+    const s2 = [];   // foto grupal: fila junto a la puerta lateral
+    for (let k = 0; k < LOBBY_SAMPLE; k++) s2.push({ x: -40, y: door2Y + k * 22 });
+    return { entry: s1, photo: s2 };
+  })();
+  return {
+    W, H, centerX, stage, stairs, ramp, stageWalkY, backWalkY, flags, mc, auth, gapY, door2Y, photoStageY, photoFloorY,
+    topCorridorY, leftOuterX, rightOuterX, blocks, seats, guestSeats, rowLabels, lobby, lobbySlots,
+    PX0: -LOBBY_W, PW: W + LOBBY_W
+  };
+})();
+
+function seatOf(side, row, num) { return GEO.seats[side][(row - 1) * SP + num]; }
+
+// ===========================================================================
+// ESTADO
+// ===========================================================================
+const state = {
+  phase: 'entry',        // entry → interlude → ceremony → done
+  running: false, paused: false,
+  speed: 1, showGuides: true,
+  queueIdx: 0, wait: 0, pause: null, pendingCareer: null, currentCareer: -1,
+  timer: 0,
+  gradSeated: 0, compSeated: 0, titles: 0,
+  roster: [], people: [],
+  cer: null, exit: null, photo: null, flash: 0, mc: null, mcText: '',
+  hovered: null, locked: null, lastTime: 0
+};
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function makePerson(rec, side) {
+  return {
+    rec, n: rec.n, side,
+    label: side === 'grad' ? rec.gradLabel : rec.compLabel,
+    color: rec.color,
+    skin: side === 'grad' ? SKINS[(rec.n * 7 + 3) % SKINS.length] : SKINS[(rec.n * 5 + 1) % SKINS.length],
+    hair: HAIRS[(rec.n * 3 + 2) % HAIRS.length],
+    x: 0, y: 0, mode: 'out', status: 'waiting',
+    route: null, wp: 0, holdT: 0, speed: 1, onArrive: null,
+    rowSeat: null, retSeat: null, returned: false, hasTitle: false,
+    phase: Math.random() * 6
+  };
+}
+
+function buildRoster() {
+  const solo = new Set(shuffle([...Array(TOTAL).keys()]).slice(0, Math.min(CONFIG.soloCount, TOTAL)));
+  const list = [];
+  CAREERS.forEach(([, surnames], ci) => surnames.forEach(s => list.push({ surname: s, careerIdx: ci })));
+  state.people = [];
+  state.roster = list.map((p, i) => {
+    const rec = {
+      n: i + 1,
+      row: Math.floor(i / SP) + 1,
+      seat: (i % SP) + 1,
+      surname: p.surname,
+      gradLabel: p.surname,
+      compLabel: 'A ' + p.surname,
+      careerIdx: p.careerIdx,
+      color: CAREER_INFO[p.careerIdx].color,
+      hasComp: !solo.has(i)
+    };
+    rec.g = makePerson(rec, 'grad');
+    rec.c = rec.hasComp ? makePerson(rec, 'comp') : null;
+    rec.ghost = rec.hasComp ? null : { ghost: true, rec, side: 'comp', rowSeat: rec.seat };
+    state.people.push(rec.g);
+    if (rec.c) state.people.push(rec.c);
+    return rec;
+  });
+}
+
+// ===========================================================================
+// MOVIMIENTO
+// ===========================================================================
+function moveTo(p, pts, opts = {}) {
+  p.route = [{ x: p.x, y: p.y }, ...pts];
+  p.wp = 0;
+  p.holdT = 0;
+  p.mode = 'move';
+  p.speed = opts.speed || 1;
+  if (opts.status) p.status = opts.status;
+  p.onArrive = opts.onArrive || (q => { q.mode = 'hold'; });
+}
+
+function anyMoving() { return state.people.some(p => p.mode === 'move'); }
+
+function movePeople(e) {
+  for (const p of state.people) {
+    if (p.mode !== 'move') continue;
+    if (p.holdT > 0) { p.holdT -= e; continue; }
+    const target = p.route[p.wp + 1];
+    if (!target) { p.mode = 'hold'; p.onArrive(p); continue; }
+    let mult = 1;
+    if (state.phase === 'entry') {
+      for (const o of state.people) {
+        if (o !== p && o.mode === 'move' && o.side === p.side && o.n < p.n && Math.hypot(o.x - p.x, o.y - p.y) < 15) { mult = 0.35; break; }
+      }
+    }
+    const dx = target.x - p.x, dy = target.y - p.y;
+    const dist = Math.hypot(dx, dy);
+    const step = CONFIG.walkSpeed * p.speed * mult * e;
+    p.phase += step * 0.35;
+    if (dist <= step) {
+      p.x = target.x; p.y = target.y; p.wp++;
+      if (target.ev) onRouteEvent(p, target.ev);
+      if (target.wait) p.holdT = target.wait;
+    } else {
+      p.x += dx / dist * step; p.y += dy / dist * step;
+    }
+  }
+}
+
+// ===========================================================================
+// LOBBY: quienes esperan afuera, en orden, junto a la puerta
+// ===========================================================================
+function lobbyTargets() {
+  const T = new Map();
+  const S = GEO.lobbySlots;
+  if (state.phase === 'entry') {
+    state.roster.slice(state.queueIdx).forEach((rec, k) => {
+      const s = S.entry[k];
+      if (!s) return;
+      T.set(rec.g, { x: s.x + 8, y: s.y });
+      if (rec.c) T.set(rec.c, { x: s.x - 8, y: s.y });
+    });
+  } else if (state.phase === 'photo' && state.photo && state.photo.step === 'enter') {
+    state.photo.toSpawn.forEach((p, k) => { const s = S.photo[k]; if (s) T.set(p, s); });
+  }
+  return T;
+}
+
+function updateLobby(e, instant) {
+  for (const [p, t] of lobbyTargets()) {
+    if (p.mode === 'out' || instant) { if (p.mode === 'out' || p.mode === 'lobby') { p.mode = 'lobby'; p.x = t.x; p.y = t.y; } continue; }
+    if (p.mode !== 'lobby') continue;
+    const dx = t.x - p.x, dy = t.y - p.y, d = Math.hypot(dx, dy), step = CONFIG.walkSpeed * e;
+    if (d <= step) { p.x = t.x; p.y = t.y; }
+    else { p.x += dx / d * step; p.y += dy / d * step; p.phase += step * 0.35; }
+  }
+}
+
+// ===========================================================================
+// PARTE 1: ENTRADA
+// ===========================================================================
+function entryRoute(seat) {
+  const isComp = seat.side === 'comp';
+  const laneX = isComp ? GEO.centerX - 8 : GEO.centerX + 8;
+  // La puerta está en el costado izquierdo, entre las filas de acompañantes y las de invitados
+  const y0 = GEO.gapY + (isComp ? -6 : 6);
+  const pts = [
+    { x: -6, y: y0 },
+    { x: laneX, y: y0 },
+    { x: laneX, y: GEO.topCorridorY }
+  ];
+  if (seat.rowIndex === 0) {
+    pts.push({ x: seat.cx, y: GEO.topCorridorY }, { x: seat.cx, y: seat.cy });
+  } else {
+    const outerX = isComp ? GEO.leftOuterX : GEO.rightOuterX;
+    pts.push({ x: outerX, y: GEO.topCorridorY }, { x: outerX, y: seat.laneY }, { x: seat.cx, y: seat.laneY }, { x: seat.cx, y: seat.cy });
+  }
+  return pts;
+}
+
+function startPause(careerIdx, seconds, first) {
+  state.pause = { careerIdx, total: seconds, first };
+  state.wait = seconds;
+  renderBanner();
+}
+
+function spawnNext() {
+  const rec = state.roster[state.queueIdx++];
+  for (const p of [rec.g, rec.c]) {
+    if (!p) continue;
+    const r = entryRoute(seatOf(p.side, rec.row, rec.seat));
+    // Salen desde su lugar en la fila del lobby
+    if (p.mode !== 'lobby') { p.x = -40; p.y = GEO.gapY; }
+    moveTo(p, r, {
+      status: 'walking',
+      onArrive: q => {
+        q.mode = 'seated'; q.status = 'seated'; q.rowSeat = rec.seat;
+        if (q.side === 'grad') state.gradSeated++; else state.compSeated++;
+        updateStats(); renderCareers(); refreshDetail();
+      }
+    });
+  }
+  state.currentCareer = rec.careerIdx;
+  state.pause = null;
+  narrateEntry(rec);
+
+  const next = state.roster[state.queueIdx];
+  if (next && next.careerIdx !== rec.careerIdx) {
+    // La siguiente carrera espera en la puerta a que esta termine de sentarse
+    state.pendingCareer = next.careerIdx;
+    state.wait = Infinity;
+  } else {
+    state.wait = CONFIG.spawnInterval;
+  }
+  renderBanner();
+  renderCareers();
+  refreshDetail();
+}
+
+function entryTick(e) {
+  if (state.pendingCareer !== null && !anyMoving()) {
+    const ci = state.pendingCareer;
+    state.pendingCareer = null;
+    startPause(ci, CONFIG.careerPause, false);
+    renderCareers();
+  }
+  if (state.queueIdx < TOTAL) {
+    state.wait -= e;
+    if (state.wait <= 0) spawnNext();
+  }
+}
+
+function toInterlude(seconds) {
+  state.phase = 'interlude';
+  state.timer = seconds;
+  state.pause = null;
+  state.pendingCareer = null;
+  state.currentCareer = -1;
+  renderBanner();
+  setNow('var(--green)', 'Todos están sentados',
+    `Los <b>${TOTAL} graduandos</b> y sus acompañantes ya están en su lugar. En breve comienza la <b>entrega de títulos</b>.`);
+  renderCareers();
+}
+
+// ===========================================================================
+// PARTE 2: ENTREGA DE TÍTULOS
+// ===========================================================================
+function sayMC(text, secs) {
+  state.mc = { text, t: secs };
+  state.mcText = text;
+}
+
+function startCeremony() {
+  state.phase = 'ceremony';
+  state.cer = {
+    step: 'intro', timer: 0.6, rows: {}, activeRow: 0,
+    waitQ: [],            // parejas fuera de su fila esperando ser llamadas (la primera es la siguiente)
+    stageBusy: false, pendingOut: [], lastCalled: null, rowsDone: 0
+  };
+  renderBanner(); renderCareers();
+}
+
+function rowRecs(r) { return state.roster.filter(x => x.row === r); }
+function rowCY(r) { return seatOf('grad', r, 1).cy; }
+function aisleX(side) { return GEO.centerX + (side === 'grad' ? 9 : -9); }
+
+// La fila se pone de pie; cada lado forma una "fila de espera" del centro hacia la orilla
+function standRow(r) {
+  const C = state.cer;
+  const pairs = rowRecs(r);
+  const queues = {};
+  for (const side of ['grad', 'comp']) {
+    // Del lado de acompañantes, la silla vacía (graduando sin acompañante) cuenta como un lugar más
+    // y se corre con la fila: así sigue vacía y al final vuelve a su sitio.
+    queues[side] = pairs.map(x => side === 'grad' ? x.g : (x.c || x.ghost)).filter(Boolean).sort((a, b) => a.rowSeat - b.rowSeat);
+  }
+  C.rows[r] = { pairs, queues, nextOut: 0, crossed: false, done: false };
+  C.activeRow = r;
+  for (const p of [...queues.grad, ...queues.comp]) {
+    if (p.mode === 'seated') { p.mode = 'standing'; p.status = 'standing'; }
+  }
+}
+
+// Dónde espera cada pareja en el pasillo central.
+// La siguiente en ser llamada: Filas 1 y 2 a la altura de su fila; desde la Fila 3, al frente (altura de la Fila 1).
+// La que viene detrás espera en el pasillo a la altura de su propia fila.
+function holdY(rec, idx) {
+  if (idx === 0) return rec.row <= 2 ? rowCY(rec.row) : rowCY(1);
+  return Math.max(rowCY(rec.row), holdY(state.cer.waitQ[idx - 1], idx - 1) + 24);
+}
+
+function settleWaiter(q) {
+  const C = state.cer;
+  const idx = C.waitQ.indexOf(q.rec);
+  if (idx < 0) { q.mode = 'hold'; return; }
+  const target = { x: aisleX(q.side), y: holdY(q.rec, idx) };
+  if (Math.hypot(target.x - q.x, target.y - q.y) > 0.5) {
+    moveTo(q, [target], { status: 'ready', onArrive: settleWaiter });
+  } else {
+    q.mode = 'hold';
+  }
+}
+
+function repositionWaiters() {
+  for (const rec of state.cer.waitQ) {
+    for (const p of [rec.g, rec.c]) if (p && p.mode === 'hold') settleWaiter(p);
+  }
+}
+
+function isReady(rec) {
+  const y = holdY(rec, 0);
+  return [rec.g, rec.c].filter(Boolean).every(p => p.mode === 'hold' && Math.abs(p.y - y) < 1);
+}
+
+// Sale al pasillo central el siguiente graduando de la fila (y su acompañante)
+function stepOut(r) {
+  const C = state.cer, R = C.rows[r];
+  const rec = R.pairs[R.nextOut++];
+  C.waitQ.push(rec);
+  for (const p of [rec.g, rec.c]) {
+    if (!p) continue;
+    const q = R.queues[p.side];
+    const i = q.indexOf(p);
+    if (i >= 0) q.splice(i, 1);
+    p.rowSeat = null;
+    moveTo(p, [{ x: aisleX(p.side), y: p.y }], { status: 'ready', onArrive: settleWaiter });
+  }
+  if (rec.ghost) {
+    const q = R.queues.comp;
+    const i = q.indexOf(rec.ghost);
+    if (i >= 0) q.splice(i, 1);
+    rec.ghost.rowSeat = null;
+  }
+  repackRow(r);
+  narrateCer(); renderBanner(); refreshDetail();
+}
+
+// Todos los que están en la fila (incluidos los que ya regresaron) se corren hacia el centro
+function repackRow(r) {
+  const R = state.cer.rows[r];
+  for (const side of ['grad', 'comp']) {
+    R.queues[side].forEach((p, i) => {
+      const target = i + 1;
+      if (p.ghost) { p.rowSeat = target; return; }
+      if (p.rowSeat === target) return;
+      p.rowSeat = target;
+      const s = seatOf(side, r, target);
+      moveTo(p, [{ x: s.cx, y: s.cy }], { status: p.status === 'returning' ? 'returning' : 'standing', onArrive: arriveSeat });
+    });
+  }
+}
+
+function arriveSeat(q) {
+  q.mode = 'standing';
+  q.status = 'standing';
+  checkRowDone(q.rec.row);
+  refreshDetail();
+}
+
+function ceremonyRoute(p) {
+  const isC = p.side === 'comp';
+  const ox = isC ? -9 : 0, oy = isC ? 6 : 0;
+  const ax = aisleX(p.side);
+  const fy = GEO.topCorridorY - 6;
+  const sx = GEO.stairs.x + GEO.stairs.w / 2;
+  const rx = GEO.ramp.x + GEO.ramp.w / 2;
+  const wy = GEO.stageWalkY;
+  const pts = [
+    { x: ax, y: fy + oy },
+    { x: sx + ox, y: fy + oy },
+    { x: sx + ox, y: GEO.stairs.y + 2 + oy, ev: 'stage' },
+    { x: sx + ox, y: wy + oy },
+    { x: GEO.centerX + ox, y: wy + oy, wait: CONFIG.receiveTime, ev: 'receive' },
+    { x: 320 + ox, y: wy + oy },
+    { x: 320 + ox, y: GEO.backWalkY + oy },
+    { x: rx + ox, y: GEO.backWalkY + oy },
+    { x: rx + ox, y: GEO.ramp.y + GEO.ramp.h + oy, ev: 'down' }
+  ];
+  const lane = seatOf(p.side, p.rec.row, 1).laneY;
+  const by = GEO.topCorridorY + 6;
+  if (isC) {
+    // Acompañante: baja por el costado izquierdo hasta su fila
+    pts.push({ x: GEO.leftOuterX - 4, y: by }, { x: GEO.leftOuterX - 4, y: lane });
+  } else {
+    // Graduando: sigue por el costado izquierdo, rodea por detrás todas las filas
+    // de graduandos y acompañantes y entra a su fila por el costado derecho
+    pts.push(
+      { x: GEO.leftOuterX + 6, y: by },
+      { x: GEO.leftOuterX + 6, y: GEO.gapY },
+      { x: GEO.rightOuterX, y: GEO.gapY },
+      { x: GEO.rightOuterX, y: lane }
+    );
+  }
+  return pts;
+}
+
+// Llega a la orilla de su fila: se ubica en el último lugar y queda de pie
+function joinRow(q) {
+  const R = state.cer.rows[q.rec.row];
+  const queue = R.queues[q.side];
+  queue.push(q);
+  q.returned = true;
+  q.rowSeat = queue.length;
+  const s = seatOf(q.side, q.rec.row, q.rowSeat);
+  moveTo(q, [{ x: s.cx, y: s.laneY }, { x: s.cx, y: s.cy }], { status: 'returning', onArrive: arriveSeat });
+}
+
+function callPair(rec) {
+  const C = state.cer;
+  C.waitQ.shift();
+  C.stageBusy = true;
+  C.lastCalled = rec;
+  sayMC(`¡${rec.surname}!`, 3.2);
+  for (const p of [rec.g, rec.c]) {
+    if (!p) continue;
+    moveTo(p, ceremonyRoute(p), { status: 'called', speed: CONFIG.cerSpeed, onArrive: joinRow });
+  }
+  repositionWaiters();
+  // Filas 1 a 4: el siguiente sale al pasillo cuando llaman al anterior.
+  // Desde la Fila 5 ya está esperando en el pasillo (ver ceremonyTick).
+  const R = C.rows[rec.row];
+  if (R.nextOut < R.pairs.length && rec.row < 5) C.pendingOut.push({ row: rec.row, t: 0.4 });
+  narrateCer(); renderBanner(); refreshDetail();
+}
+
+function onRouteEvent(p, ev) {
+  if (ev === 'stage') {
+    p.status = 'onstage';
+    if (p.side === 'grad') state.cer.stageBusy = false;
+  } else if (ev === 'receive' && p.side === 'grad') {
+    p.hasTitle = true;
+    p.label = 'Lic. ' + p.rec.surname;
+    state.titles++;
+    updateStats(); renderCareers();
+  } else if (ev === 'down') {
+    p.status = 'returning';
+    // La silla vacía del acompañante "regresa" a la fila junto con el graduando
+    const gh = p.rec.ghost;
+    if (p.side === 'grad' && gh) {
+      const q = state.cer.rows[p.rec.row].queues.comp;
+      q.push(gh);
+      gh.rowSeat = q.length;
+    }
+  } else if (ev === 'cleared') {
+    p.cleared = true;
+  }
+  refreshDetail();
+}
+
+// Cuando todos los de la fila regresaron a su silla, la fila se sienta
+function checkRowDone(r) {
+  const C = state.cer;
+  const R = C.rows[r];
+  if (!R || R.done || R.nextOut < R.pairs.length) return;
+  const ppl = R.pairs.flatMap(x => [x.g, x.c]).filter(Boolean);
+  if (!ppl.every(p => p.returned && p.mode === 'standing')) return;
+  R.done = true;
+  for (const p of ppl) { p.mode = 'seated'; p.status = 'seated'; }
+  C.rowsDone++;
+  renderCareers();
+  if (C.rowsDone >= ROWS) startExit();
+}
+
+function ceremonyTick(e) {
+  const C = state.cer;
+  if (C.timer > 0) { C.timer -= e; return; }
+  if (C.step === 'intro') {
+    standRow(1);
+    sayMC('Ahora haremos entrega de su título…', 4);
+    C.step = 'run';
+    C.pendingOut.push({ row: 1, t: CONFIG.rowStandTime + 0.8 });
+    narrateCer(); renderBanner(); refreshDetail();
+    return;
+  }
+  for (let i = C.pendingOut.length - 1; i >= 0; i--) {
+    const po = C.pendingOut[i];
+    po.t -= e;
+    if (po.t <= 0) { C.pendingOut.splice(i, 1); stepOut(po.row); }
+  }
+  const head = C.waitQ[0];
+  if (head && !C.stageBusy && isReady(head)) callPair(head);
+
+  const A = C.activeRow, RA = C.rows[A];
+  // Desde la Fila 5: cuando una pareja se va al frente, la siguiente ya sale al pasillo a esperar
+  if (RA && A >= 5 && RA.nextOut < RA.pairs.length && C.waitQ.length < 2 && !C.pendingOut.some(po => po.row === A)) {
+    C.pendingOut.push({ row: A, t: 0.5 });
+  }
+
+  // Sin pausas: cuando el último de la fila ya espera su llamado, la siguiente fila se pone de pie
+  // y su primer graduando pasa al centro para tomar su lugar.
+  if (RA && !RA.crossed && A < ROWS && RA.nextOut >= RA.pairs.length && C.waitQ.length < 2) {
+    const last = RA.pairs[RA.pairs.length - 1];
+    if (last.g.mode === 'hold' || last.g.status !== 'ready') {
+      RA.crossed = true;
+      standRow(A + 1);
+      sayMC(`Fila ${A + 1}, de pie por favor`, 2.5);
+      C.pendingOut.push({ row: A + 1, t: 0.8 });
+      narrateCer(); renderBanner();
+    }
+  }
+}
+
+// ===========================================================================
+// PARTE 3: SALIDA POR CARRERA Y FOTO GRUPAL
+// ===========================================================================
+// Grupos para la foto: Antropología se une a Gestión de la Información y Geografía a Historia.
+// Las tres carreras con más licenciados se dividen: mitad arriba del escenario y mitad abajo.
+const PHOTO_GROUPS = (() => {
+  const mergeInto = { 2: 1, 4: 5 };
+  const top3 = CAREER_INFO.map((c, i) => [c.count, i]).sort((a, b) => b[0] - a[0]).slice(0, 3).map(x => x[1]);
+  const groups = [], byKey = {};
+  CAREER_INFO.forEach((c, i) => {
+    const key = i in mergeInto ? mergeInto[i] : i;
+    if (!(key in byKey)) { byKey[key] = { careers: [] }; groups.push(byKey[key]); }
+    byKey[key].careers.push(i);
+  });
+  groups.forEach(g => {
+    const names = g.careers.map(i => CAREER_INFO[i].name);
+    g.name = names.reduce((acc, nm, k) => k === 0 ? nm : acc + (/^h?[ií]/i.test(nm) ? ' e ' : ' y ') + nm, '');
+    g.color = CAREER_INFO[g.careers[0]].color;
+    g.split = g.careers.length === 1 && top3.includes(g.careers[0]);
+  });
+  return groups;
+})();
+function photoGroupOf(ci) { return PHOTO_GROUPS.find(g => g.careers.includes(ci)); }
+
+function startExit() {
+  state.phase = 'exit';
+  state.exit = { ci: -1, queue: [], wait: 2.4, clearing: true };
+  sayMC('¡Felicidades! Ahora saldrán por carrera', 3);
+  renderBanner(); renderCareers();
+  setNow('var(--green)', 'Salida por carrera', 'Todos recibieron su título. Ahora salen <b>por carrera</b>, en el mismo orden en que entraron.');
+}
+
+function exitTick(e) {
+  const X = state.exit;
+  X.wait -= e;
+  if (X.wait > 0) return;
+  if (X.clearing) {
+    // La siguiente carrera se anuncia en cuanto la anterior terminó de levantarse (no se espera a que salga)
+    X.ci++;
+    if (X.ci >= CAREER_INFO.length) {
+      if (state.people.some(p => p.status === 'exiting')) { X.ci--; return; }
+      startPhoto(); return;
+    }
+    X.clearing = false;
+    X.queue = state.roster.filter(r => r.careerIdx === X.ci);
+    sayMC(`¡Licenciados en ${CAREER_INFO[X.ci].name}!`, 3);
+    X.wait = 1.3;
+    renderBanner(); renderCareers(); narrateExit(null);
+    return;
+  }
+  if (X.queue.length) {
+    exitPair(X.queue.shift());
+    X.wait = CONFIG.exitInterval;
+    if (!X.queue.length) { X.clearing = true; X.wait = 1.0; }
+  }
+}
+
+// Salen uno tras otro: cada uno se une al centro con su pareja y salen por el pasillo central
+// hasta la puerta de entrada (costado izquierdo) y el lobby.
+function exitPair(rec) {
+  for (const p of [rec.g, rec.c]) {
+    if (!p) continue;
+    const s = seatOf(p.side, rec.row, p.rowSeat || rec.seat);
+    const ax = aisleX(p.side);
+    const y0 = GEO.gapY + (p.side === 'comp' ? -6 : 6);
+    p.rowSeat = null;
+    moveTo(p, [{ x: s.cx, y: s.laneY }, { x: ax, y: s.laneY }, { x: ax, y: y0 }, { x: -6, y: y0 }, { x: -60, y: y0 }], {
+      status: 'exiting', speed: CONFIG.cerSpeed,
+      onArrive: q => { q.mode = 'out'; q.status = 'outside'; renderCareers(); refreshDetail(); }
+    });
+  }
+  shiftOthersInRow(rec.row);
+  narrateExit(rec);
+  renderCareers(); refreshDetail();
+}
+
+// Si en la fila quedan personas de otra carrera, se ponen de pie y se corren hasta
+// el asiento junto al pasillo; ahí esperan a que llamen a su carrera.
+function shiftOthersInRow(r) {
+  const ci = state.exit.ci;
+  const pending = state.exit.queue.some(x => x.row === r);
+  if (pending) return;   // todavía salen personas de esta carrera en la fila
+  for (const side of ['grad', 'comp']) {
+    const rest = state.roster
+      .filter(x => x.row === r && x.careerIdx !== ci)
+      .map(x => side === 'grad' ? x.g : x.c)
+      .filter(p => p && p.rowSeat && p.status !== 'exiting')
+      .sort((a, b) => a.rowSeat - b.rowSeat);
+    rest.forEach((p, i) => {
+      const target = i + 1;
+      if (p.mode === 'seated') { p.mode = 'standing'; p.status = 'standing'; }
+      if (p.rowSeat === target) return;
+      p.rowSeat = target;
+      const s = seatOf(side, r, target);
+      moveTo(p, [{ x: s.cx, y: s.cy }], { status: 'standing', onArrive: q => { q.mode = 'standing'; q.status = 'standing'; } });
+    });
+  }
+}
+
+function narrateExit(rec) {
+  const c = CAREER_INFO[state.exit.ci];
+  let html = `<span class="mc">🎤 «¡Licenciados en ${esc(c.name)}!»</span>`;
+  html += rec
+    ? `Sale <b class="tag-g">${esc(rec.g.label)}</b>${rec.c ? ` con <b class="tag-c">${esc(rec.compLabel)}</b>` : ''}, en pareja, por el <b>pasillo del centro</b> hacia la <b>misma puerta</b> por la que entraron.`
+    : `La carrera se prepara para salir en parejas por el pasillo del centro.`;
+  setNow(c.color, `Salen: ${c.name}`, html);
+}
+
+function photoSpots(n, y) {
+  const gap = 19, x0 = GEO.centerX - (n - 1) * gap / 2;
+  return Array.from({ length: n }, (_, i) => ({ x: x0 + i * gap, y }));
+}
+
+function startPhoto() {
+  state.phase = 'photo';
+  state.photo = { gi: -1, step: 'next', timer: 1.8, members: [], toSpawn: [], toLeave: [] };
+  sayMC('Ahora, la foto grupal por carrera', 3);
+  renderBanner(); renderCareers();
+  setNow('#6a3fb5', 'Foto grupal', 'Los licenciados son llamados de nuevo, por carrera, para la <b>foto grupal</b>.');
+}
+
+function photoTick(e) {
+  const P = state.photo;
+  if (P.timer > 0) { P.timer -= e; return; }
+  if (P.step === 'next') {
+    if (P.gi + 1 >= PHOTO_GROUPS.length) {
+      if (!anyMoving()) finishAll();   // termina cuando el último grupo ya salió
+      return;
+    }
+    P.gi++;
+    const g = PHOTO_GROUPS[P.gi];
+    const grads = state.roster.filter(r => g.careers.includes(r.careerIdx)).map(r => r.g);
+    let up = grads, down = [];
+    if (g.split) { const h = Math.ceil(grads.length / 2); up = grads.slice(0, h); down = grads.slice(h); }
+    const su = photoSpots(up.length, GEO.photoStageY), sd = photoSpots(down.length, GEO.photoFloorY);
+    // Los primeros en entrar van al extremo derecho para no cruzarse con los demás
+    up.forEach((p, i) => { p.spot = su[su.length - 1 - i]; p.onStage = true; p.cleared = false; });
+    down.forEach((p, i) => { p.spot = sd[sd.length - 1 - i]; p.onStage = false; p.cleared = false; });
+    P.members = grads;
+    P.toSpawn = [];
+    for (let i = 0; i < Math.max(up.length, down.length); i++) {
+      if (up[i]) P.toSpawn.push(up[i]);
+      if (down[i]) P.toSpawn.push(down[i]);
+    }
+    sayMC(`Foto grupal: Licenciados en ${g.name}`, 3.5);
+    P.step = 'enter';
+    renderBanner(); renderCareers(); narratePhoto();
+  } else if (P.step === 'enter') {
+    if (P.toSpawn.length) { photoEnter(P.toSpawn.shift()); P.timer = 0.35; }
+    else if (P.members.every(p => p.status === 'photo')) {
+      sayMC('¡Sonrían! 📸', 2.5);
+      P.step = 'flash'; P.timer = 1.0;
+      narratePhoto();
+    }
+  } else if (P.step === 'flash') {
+    state.flash = 0.8;
+    P.members.forEach(p => { p.photoDone = true; });
+    P.step = 'leave'; P.timer = 1.4;
+    renderCareers(); refreshDetail();
+  } else if (P.step === 'leave') {
+    P.toLeave = P.members.slice().sort((a, b) => b.x - a.x);
+    P.step = 'leaving';
+    narratePhoto();
+  } else if (P.step === 'leaving') {
+    if (P.toLeave.length) { photoLeave(P.toLeave.shift()); P.timer = 0.3; }
+    else if (P.members.every(p => p.cleared)) { P.step = 'next'; P.timer = 0.6; }
+  }
+}
+
+// Entran por la puerta lateral junto a la rampa y suben al escenario por la rampa
+function photoEnter(p) {
+  const rx = GEO.ramp.x + GEO.ramp.w / 2;
+  const sy = GEO.stageWalkY + 10, fy = GEO.photoFloorY + 18;
+  if (p.mode !== 'lobby') { p.x = -30; p.y = GEO.door2Y; }
+  const door = [{ x: -14, y: GEO.door2Y }, { x: 4, y: GEO.door2Y }];
+  const pts = p.onStage
+    ? [...door, { x: rx, y: GEO.door2Y }, { x: rx, y: GEO.ramp.y + 2 }, { x: rx, y: sy }, { x: p.spot.x, y: sy }, { x: p.spot.x, y: p.spot.y }]
+    : [...door, { x: rx + 30, y: fy }, { x: p.spot.x, y: fy }, { x: p.spot.x, y: p.spot.y }];
+  moveTo(p, pts, { status: 'tophoto', speed: CONFIG.cerSpeed, onArrive: q => { q.mode = 'hold'; q.status = 'photo'; refreshDetail(); } });
+  refreshDetail();
+}
+
+// Bajan por las escaleras de la derecha para dar espacio a la siguiente carrera
+function photoLeave(p) {
+  const sx = GEO.stairs.x + GEO.stairs.w / 2;
+  const sy = GEO.stageWalkY + 10, fy = GEO.photoFloorY + 18;
+  const by = GEO.gapY + 6;
+  const pts = p.onStage
+    ? [{ x: p.spot.x, y: sy }, { x: sx, y: sy }, { x: sx, y: GEO.stairs.y + GEO.stairs.h + 4 }, { x: GEO.rightOuterX, y: GEO.topCorridorY, ev: 'cleared' }]
+    : [{ x: p.spot.x, y: fy }, { x: GEO.rightOuterX, y: fy, ev: 'cleared' }];
+  // Salen por la puerta de entrada (costado izquierdo, entre acompañantes e invitados)
+  pts.push({ x: GEO.rightOuterX, y: by }, { x: -6, y: by }, { x: -60, y: by });
+  moveTo(p, pts, { status: 'leaving', speed: CONFIG.cerSpeed, onArrive: q => { q.mode = 'out'; q.status = 'outside'; refreshDetail(); } });
+  refreshDetail();
+}
+
+function narratePhoto() {
+  const P = state.photo, g = PHOTO_GROUPS[P.gi];
+  let html = `<span class="mc">🎤 «${esc(state.mcText)}»</span>`;
+  if (P.step === 'enter') {
+    html += `Entran por la <b>puerta lateral, junto a la rampa</b>, y suben al escenario por la <b>rampa</b>.`
+      + (g.split ? ` Como es un grupo grande, <b>la mitad sube al escenario y la otra mitad se queda abajo</b>, al frente, para la misma foto.` : '');
+  } else if (P.step === 'flash') {
+    html += `¡Foto! Todos quietos y sonriendo.`;
+  } else {
+    html += `Bajan por las <b>escaleras de la derecha</b> para dejar espacio a la siguiente carrera.`;
+  }
+  setNow(g.color, `Foto: ${g.name}`, html);
+}
+
+function finishAll() {
+  state.phase = 'done';
+  state.running = false;
+  sayMC('¡Felicidades, Licenciados!', 9999);
+  const btn = document.getElementById('btn-play');
+  btn.disabled = true;
+  btn.textContent = '✓ Terminado';
+  renderBanner();
+  setNow('var(--green)', 'Ceremonia completa',
+    `🎉 ¡Fin de la ceremonia! Los <b>${TOTAL} licenciados</b> recibieron su título, salieron por carrera y se tomaron la foto grupal.`);
+  renderCareers();
+  refreshDetail(true);
+}
+
+// ===========================================================================
+// BUCLE DE ACTUALIZACIÓN
+// ===========================================================================
+function update(dt) {
+  if (!state.running || state.paused) return;
+  const e = dt * state.speed;
+  if (state.mc && state.mc.t > 0) state.mc.t -= e;
+
+  if (state.phase === 'entry') entryTick(e);
+  else if (state.phase === 'interlude') { state.timer -= e; if (state.timer <= 0) startCeremony(); }
+  else if (state.phase === 'ceremony') ceremonyTick(e);
+  else if (state.phase === 'exit') exitTick(e);
+  else if (state.phase === 'photo') photoTick(e);
+  if (state.flash > 0) state.flash = Math.max(0, state.flash - e * 1.5);
+
+  movePeople(e);
+  updateLobby(e, false);
+
+  if (state.phase === 'entry' && state.queueIdx >= TOTAL && !anyMoving()) toInterlude(3);
+}
+
+// ===========================================================================
+// DIBUJO
+// ===========================================================================
+const canvas = document.getElementById('plan');
+const ctx = canvas.getContext('2d');
+let DPR = 1;
+
+// ---------------------------------------------------------------------------
+// Vista del plano: escala siempre proporcional (nunca se deforma), con acercar,
+// mover y un modo "seguir la acción" pensado para teléfonos.
+// ---------------------------------------------------------------------------
+// Región visible: todo el plano, o en "Pantalla completa" solo del pasillo de entrada hacia el escenario
+function fullRegion() { return { x0: GEO.PX0, y0: 0, x1: GEO.PX0 + GEO.PW, y1: GEO.H }; }
+function fsRegion() { return { x0: GEO.PX0, y0: 0, x1: GEO.W, y1: GEO.gapY + 22 }; }
+const view = { zoom: 1, cx: 0, cy: 0, follow: false, cw: 1, ch: 1, fit: 1, s: 1, tx: 0, ty: 0, region: fullRegion() };
+function regionCenter() { const R = view.region; return [(R.x0 + R.x1) / 2, (R.y0 + R.y1) / 2]; }
+[view.cx, view.cy] = regionCenter();
+function isFS() { return document.querySelector('.plan-card').classList.contains('fs'); }
+// Teléfono: pantalla angosta (vertical) o bajita (horizontal)
+function isMobile() { return window.innerWidth < 760 || window.innerHeight < 500; }
+
+function setupCanvas() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+  const wrap = canvas.parentElement;
+  const R = view.region, RW = R.x1 - R.x0, RH = R.y1 - R.y0;
+  const cw = wrap.clientWidth;
+  const natural = cw * RH / RW;
+  let ch = natural;
+  if (isFS()) {
+    ch = wrap.clientHeight;   // ocupa todo el espacio disponible
+  } else if (window.innerHeight < 500) {
+    // Teléfono horizontal: el plano cabe completo en la altura de la pantalla
+    ch = Math.min(natural, window.innerHeight - 16);
+  } else if (window.innerWidth < 760) {
+    // Teléfono vertical: más alto que su proporción natural, para acercarse con espacio
+    ch = Math.max(natural, Math.min(window.innerHeight * 0.62, cw * 1.3));
+  }
+  ch = Math.round(ch);
+  canvas.style.height = ch + 'px';
+  canvas.width = Math.round(cw * DPR);
+  canvas.height = Math.round(ch * DPR);
+  view.cw = cw; view.ch = ch;
+  view.fit = Math.min(cw / RW, ch / RH);
+  clampView();
+}
+
+function applyView() {
+  view.s = view.fit * view.zoom;
+  view.tx = view.cw / 2 - view.cx * view.s;
+  view.ty = view.ch / 2 - view.cy * view.s;
+}
+
+function clampView() {
+  view.zoom = Math.max(1, Math.min(view.zoom, 5));
+  const s = view.fit * view.zoom;
+  const hw = view.cw / (2 * s), hh = view.ch / (2 * s);
+  const { x0, y0, x1, y1 } = view.region;
+  view.cx = (x1 - x0) <= 2 * hw ? (x0 + x1) / 2 : Math.max(x0 + hw, Math.min(x1 - hw, view.cx));
+  view.cy = (y1 - y0) <= 2 * hh ? (y0 + y1) / 2 : Math.max(y0 + hh, Math.min(y1 - hh, view.cy));
+  applyView();
+}
+
+function zoomAt(mx, my, newZoom) {
+  const px = (mx - view.tx) / view.s, py = (my - view.ty) / view.s;
+  view.zoom = Math.max(1, Math.min(5, newZoom));
+  const s = view.fit * view.zoom;
+  view.cx = px - (mx - view.cw / 2) / s;
+  view.cy = py - (my - view.ch / 2) / s;
+  clampView();
+}
+
+function setFollow(on) {
+  view.follow = on;
+  document.getElementById('z-follow').classList.toggle('on', on);
+}
+
+// Zona donde está pasando lo importante en cada momento
+function focusBox() {
+  const ph = state.phase;
+  let key = [];
+  const byNewest = (a, b) => b.n - a.n;
+  if (ph === 'entry') {
+    key = state.people.filter(p => p.mode === 'move').sort(byNewest).slice(0, 6);
+  } else if (ph === 'ceremony' && state.cer) {
+    // La pareja que fue llamada (hasta que baja) y la que espera su turno
+    const C = state.cer;
+    for (const r of [C.lastCalled, C.waitQ[0]]) if (r) key.push(r.g, r.c);
+    key = key.filter(p => p && ['called', 'onstage', 'ready'].includes(p.status));
+  } else if (ph === 'exit') {
+    key = state.people.filter(p => p.mode === 'move' && p.status === 'exiting').sort(byNewest).slice(0, 8);
+  } else if (ph === 'photo' && state.photo) {
+    key = state.photo.members.filter(p => p.mode !== 'out' && p.status !== 'leaving');
+    if (!key.length) key = state.photo.members.filter(p => p.mode !== 'out');
+  }
+  if (!key.length) return null;
+  let b = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const p of key) b = [Math.min(b[0], p.x - 24), Math.min(b[1], p.y - 36), Math.max(b[2], p.x + 24), Math.max(b[3], p.y + 14)];
+  // Tamaño mínimo para no acercarse demasiado
+  const minW = 300, minH = 230;
+  if (b[2] - b[0] < minW) { const c = (b[0] + b[2]) / 2; b[0] = c - minW / 2; b[2] = c + minW / 2; }
+  if (b[3] - b[1] < minH) { const c = (b[1] + b[3]) / 2; b[1] = c - minH / 2; b[3] = c + minH / 2; }
+  return b;
+}
+
+function updateCamera(dt) {
+  if (!view.follow) return;
+  const b = focusBox();
+  let tz = 1, [tcx, tcy] = regionCenter();
+  if (b) {
+    const pad = 30;
+    tz = Math.max(1, Math.min(3, view.cw / ((b[2] - b[0] + pad * 2) * view.fit), view.ch / ((b[3] - b[1] + pad * 2) * view.fit)));
+    tcx = (b[0] + b[2]) / 2; tcy = (b[1] + b[3]) / 2;
+  }
+  const k = 1 - Math.exp(-dt * 2.2);
+  view.zoom += (tz - view.zoom) * k;
+  view.cx += (tcx - view.cx) * k;
+  view.cy += (tcy - view.cy) * k;
+  clampView();
+}
+
+// Tamaño de letra que sigue siendo legible aunque el plano se vea pequeño
+function uiSize(base, minScreenPx) { return Math.min(base * 1.7, Math.max(base, minScreenPx / view.s)); }
+
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function font(weight, size) { return `${weight} ${size}px Nunito, system-ui, sans-serif`; }
+
+// Figura de persona. Graduando: toga azul + estola de su carrera + birrete.
+function drawPerson(x, y, o) {
+  const c = ctx;
+  const s = o.s || 1;
+  c.save();
+  c.translate(x, y);
+  c.scale(s, s);
+  if (o.alpha) c.globalAlpha = o.alpha;
+  if (o.legs) {
+    c.fillStyle = 'rgba(60,40,20,0.15)';
+    c.beginPath(); c.ellipse(0, 10, 6, 2, 0, 0, Math.PI * 2); c.fill();
+    const sw = o.legs === 'walk' ? Math.sin(o.phase || 0) * 2.4 : 0;
+    c.strokeStyle = '#3b3640'; c.lineWidth = 1.9; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(-2, 5); c.lineTo(-2 + sw, 10); c.moveTo(2, 5); c.lineTo(2 - sw, 10); c.stroke();
+  }
+  c.fillStyle = o.body || (o.grad ? '#24396b' : '#e07a5f');
+  c.beginPath();
+  c.moveTo(-5.5, 7); c.lineTo(-5.5, 0); c.quadraticCurveTo(-5.5, -3.5, -2, -3.5);
+  c.lineTo(2, -3.5); c.quadraticCurveTo(5.5, -3.5, 5.5, 0); c.lineTo(5.5, 7); c.closePath();
+  c.fill();
+  if (o.grad) {
+    c.strokeStyle = o.color; c.lineWidth = 1.8; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(-2.8, -3); c.lineTo(-1.6, 6); c.moveTo(2.8, -3); c.lineTo(1.6, 6); c.stroke();
+  }
+  c.fillStyle = o.skin;
+  c.beginPath(); c.arc(0, -7.5, 4, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = 'rgba(0,0,0,0.18)'; c.lineWidth = 0.6; c.stroke();
+  if (o.grad) {
+    c.fillStyle = '#1a2747';
+    c.fillRect(-3, -11.5, 6, 2.4);
+    c.beginPath(); c.moveTo(-7, -11.5); c.lineTo(0, -14.5); c.lineTo(7, -11.5); c.lineTo(0, -9); c.closePath(); c.fill();
+    c.strokeStyle = '#e9b949'; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(0, -11.8); c.lineTo(5.2, -11.2); c.lineTo(5.8, -7); c.stroke();
+    c.fillStyle = '#e9b949'; c.beginPath(); c.arc(5.8, -6.6, 1, 0, Math.PI * 2); c.fill();
+  } else if (o.hair) {
+    c.fillStyle = o.hair;
+    c.beginPath(); c.arc(0, -8.2, 4.3, Math.PI, Math.PI * 2); c.closePath(); c.fill();
+  }
+  if (o.title) {
+    // título enrollado con cinta roja
+    c.save();
+    c.translate(7, 2); c.rotate(-0.5);
+    c.fillStyle = '#fffaf0'; c.strokeStyle = '#b89b6a'; c.lineWidth = 0.6;
+    c.fillRect(-1.6, -5, 3.2, 10); c.strokeRect(-1.6, -5, 3.2, 10);
+    c.fillStyle = '#c0392b'; c.fillRect(-1.8, -0.8, 3.6, 1.6);
+    c.restore();
+  }
+  c.restore();
+}
+
+function drawArrow(x1, y1, x2, y2, color, dashed) {
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1.6;
+  if (dashed) ctx.setLineDash([5, 5]);
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  ctx.setLineDash([]);
+  const a = Math.atan2(y2 - y1, x2 - x1), L = 6;
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - L * Math.cos(a - Math.PI / 6), y2 - L * Math.sin(a - Math.PI / 6));
+  ctx.lineTo(x2 - L * Math.cos(a + Math.PI / 6), y2 - L * Math.sin(a + Math.PI / 6));
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function drawPolyline(pts, color, width, dash) {
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  if (dash) ctx.setLineDash(dash);
+  ctx.beginPath();
+  pts.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+  ctx.stroke();
+  ctx.restore();
+}
+
+function text(str, x, y, weight, size, color, align = 'center') {
+  ctx.font = font(weight, size);
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  ctx.textBaseline = 'middle';
+  ctx.fillText(str, x, y);
+}
+
+function drawStage() {
+  const st = GEO.stage, cx = GEO.centerX;
+  // Piso del escenario
+  ctx.save();
+  ctx.shadowColor = 'rgba(60,30,10,0.25)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+  const g = ctx.createLinearGradient(0, st.y, 0, st.y + st.h);
+  g.addColorStop(0, '#8a5a3b'); g.addColorStop(1, '#a8754f');
+  ctx.fillStyle = g;
+  rr(st.x, st.y, st.w, st.h, 10); ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
+  for (let y = st.y + 12; y < st.y + st.h; y += 12) {
+    ctx.beginPath(); ctx.moveTo(st.x + 6, y); ctx.lineTo(st.x + st.w - 6, y); ctx.stroke();
+  }
+  ctx.fillStyle = '#e9b949';
+  ctx.fillRect(st.x + 8, st.y + st.h - 4, st.w - 16, 2);
+
+  // Escaleras (derecha, subida)
+  const s = GEO.stairs;
+  ctx.fillStyle = '#cdbfae';
+  rr(s.x, s.y, s.w, s.h, 4); ctx.fill();
+  ctx.strokeStyle = '#9d8d79'; ctx.lineWidth = 1.2;
+  for (let y = s.y + 6; y < s.y + s.h; y += 6) { ctx.beginPath(); ctx.moveTo(s.x + 3, y); ctx.lineTo(s.x + s.w - 3, y); ctx.stroke(); }
+  const photoTime = state.phase === 'photo' || state.phase === 'done';
+  text(photoTime ? 'Escaleras: en la foto se BAJA ↓' : 'Escaleras: aquí se SUBE ↑', s.x - 8, s.y + s.h - 10, 900, 10.5, '#5c4a35', 'right');
+
+  // Rampa (izquierda, bajada)
+  const r = GEO.ramp;
+  const rg = ctx.createLinearGradient(0, r.y, 0, r.y + r.h);
+  rg.addColorStop(0, '#b9a58c'); rg.addColorStop(1, '#e6dccd');
+  ctx.fillStyle = rg;
+  rr(r.x, r.y, r.w, r.h, 4); ctx.fill();
+  ctx.strokeStyle = '#9d8d79'; ctx.lineWidth = 1; ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+  text(photoTime ? '↑ Rampa: en la foto se SUBE' : '↓ Rampa: aquí se BAJA', r.x + r.w + 8, r.y + r.h - 18, 900, 10.5, '#5c4a35', 'left');
+
+  // Banderas (izquierda, detrás del maestro de ceremonia)
+  const f = GEO.flags;
+  const flagColors = [['#1f5fbf', '#ffffff', '#1f5fbf'], ['#7a1f2b', '#e9b949', '#7a1f2b'], ['#2f6b3a', '#ffffff', '#2f6b3a']];
+  flagColors.forEach((cols, i) => {
+    const px = f.x + i * 28;
+    ctx.fillStyle = '#d9c38a'; ctx.fillRect(px, f.y, 2, 30);
+    ctx.beginPath(); ctx.arc(px + 1, f.y, 2, 0, Math.PI * 2); ctx.fill();
+    cols.forEach((col, j) => { ctx.fillStyle = col; ctx.fillRect(px + 2, f.y + 2 + j * 4, 18, 4); });
+    ctx.fillStyle = '#5b4632'; ctx.fillRect(px - 3, f.y + 30, 8, 3);
+  });
+  text('Banderas', f.x + 32, f.y + 42, 800, 9.5, '#fff1d6');
+
+  // Maestro de ceremonia con su atril
+  const m = GEO.mc;
+  drawPerson(m.x, m.y - 6, { s: 1, body: '#2d2d3a', skin: '#c68642', hair: '#1f1a17', legs: 'stand' });
+  ctx.fillStyle = '#5b3a24'; rr(m.x - 9, m.y - 2, 18, 14, 3); ctx.fill();
+  ctx.fillStyle = '#e9b949'; ctx.fillRect(m.x - 6, m.y + 2, 12, 1.5);
+  text('Maestro de ceremonia', m.x, m.y + 20, 800, 9.5, '#fff1d6');
+
+  // Autoridades al centro (entregan el título)
+  const a = GEO.auth;
+  [-46, 0, 46].forEach((dx, i) => drawPerson(a.x + dx, a.y, { s: 1.05, body: ['#2d2d3a', '#3d2f4f', '#2d2d3a'][i], skin: SKINS[(i * 2 + 1) % SKINS.length], hair: HAIRS[i], legs: null }));
+  ctx.fillStyle = '#fbf7ef'; rr(a.x - 74, a.y + 7, 148, 12, 3); ctx.fill();
+  ctx.fillStyle = '#7a1f2b'; ctx.fillRect(a.x - 74, a.y + 15, 148, 4);
+  text('Autoridades (entregan el título)', a.x, GEO.backWalkY - 3, 800, 9.5, '#fff1d6');
+  text('★ Aquí se recibe el título', a.x, GEO.stageWalkY + 14, 800, 9, '#fff1d6');
+
+  text('ESCENARIO', 700, 38, 900, 18, '#fff4e0');
+  text('Todos miran hacia aquí', 700, 56, 700, 10.5, '#f7dfa0');
+}
+
+function drawMCBubble() {
+  if (!state.mc || state.mc.t <= 0) return;
+  const m = GEO.mc;
+  const fs = uiSize(11, 10), lh = fs * 1.2, maxW = fs * 14;
+  ctx.save();
+  ctx.font = font(900, fs);
+  const words = state.mc.text;
+  const lines = ctx.measureText(words).width > maxW ? wrap(words, maxW) : [words];
+  const bw = Math.max(...lines.map(l => ctx.measureText(l).width)) + 16;
+  const bh = lines.length * lh + 10;
+  const bx = m.x + 16, by = m.y - 22 - bh;
+  ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#6a3fb5'; ctx.lineWidth = 1.5;
+  ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 6;
+  rr(bx, by, bw, bh, 8); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bx + 8, by + bh); ctx.lineTo(bx + 2, by + bh + 7); ctx.lineTo(bx + 16, by + bh); ctx.closePath();
+  ctx.fillStyle = '#fff'; ctx.fill();
+  lines.forEach((l, i) => text(l, bx + 8, by + 5 + lh / 2 + i * lh, 900, fs, '#4e2a8e', 'left'));
+  ctx.restore();
+}
+
+function wrap(str, max) {
+  const words = str.split(' '), lines = [];
+  let cur = '';
+  for (const w of words) {
+    const t = cur ? cur + ' ' + w : w;
+    if (ctx.measureText(t).width > max && cur) { lines.push(cur); cur = w; } else cur = t;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+function drawBlock(b, title, fill, stroke, color) {
+  ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = 1.5;
+  rr(b.x, b.y, b.w, b.h, 14); ctx.fill(); ctx.stroke();
+  text(title, b.x + b.w / 2, b.y + 13, 900, 11, color);
+}
+
+function render() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#efe7da';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(DPR * view.s, 0, 0, DPR * view.s, DPR * view.tx, DPR * view.ty);
+  const { W, H, centerX } = GEO;
+  const ph = state.phase;
+  const inCer = ph === 'ceremony';
+
+  // Lobby (afuera)
+  const L = GEO.lobby;
+  ctx.fillStyle = '#e8ecf0'; ctx.strokeStyle = '#b4bec9'; ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]); rr(L.x, L.y, L.w, L.h, 12); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+  text('LOBBY (afuera)', L.x + L.w / 2, L.y + 13, 900, 10.5, '#4f5a66');
+  text('Aquí se organiza', L.x + L.w / 2, L.y + 27, 700, 9, '#6b7682');
+  text('el orden', L.x + L.w / 2, L.y + 38, 700, 9, '#6b7682');
+  const waitingCount = ph === 'entry' ? TOTAL - state.queueIdx : (ph === 'photo' && state.photo && state.photo.step === 'enter' ? state.photo.toSpawn.length : 0);
+  if (waitingCount > LOBBY_SAMPLE) {
+    const ly = ph === 'entry' ? GEO.gapY - LOBBY_SAMPLE * 24 - 2 : GEO.door2Y + LOBBY_SAMPLE * 22 + 4;
+    text(`Muestra · ${waitingCount}`, L.x + L.w / 2, ly, 800, 8.5, '#6b7682');
+    text(ph === 'entry' ? 'parejas esperan' : 'esperan', L.x + L.w / 2, ly + 10, 800, 8.5, '#6b7682');
+  }
+
+  // Piso y paredes
+  ctx.fillStyle = '#f3ece1'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#fbf7f0'; ctx.strokeStyle = '#c8b597'; ctx.lineWidth = 5;
+  rr(3, 3, W - 6, H - 6, 16); ctx.fill(); ctx.stroke();
+
+  // Puerta de entrada: costado izquierdo, entre las filas de acompañantes y las de invitados
+  const dy = GEO.gapY;
+  ctx.fillStyle = '#fbf7f0'; ctx.fillRect(-2, dy - 14, 12, 28);
+  ctx.fillStyle = '#9a6b2f'; ctx.fillRect(-2, dy - 18, 14, 5); ctx.fillRect(-2, dy + 13, 14, 5);
+
+  // Puerta lateral junto a la rampa (para la foto grupal)
+  const d2 = GEO.door2Y;
+  ctx.fillStyle = '#fbf7f0'; ctx.fillRect(-2, d2 - 12, 12, 24);
+  ctx.fillStyle = '#9a6b2f'; ctx.fillRect(-2, d2 - 16, 14, 5); ctx.fillRect(-2, d2 + 11, 14, 5);
+  text('◀ 🚪 Puerta lateral (foto grupal)', 78, d2 + 4, 800, 9.5, '#8a5a1c', 'left');
+
+  drawStage();
+
+  // Alfombra: pasillo central y pasillo de la puerta de entrada
+  ctx.fillStyle = 'rgba(178,58,72,0.12)';
+  ctx.fillRect(centerX - 20, GEO.topCorridorY - 12, 40, H - GEO.topCorridorY + 2);
+  ctx.fillRect(0, GEO.gapY - 13, centerX + 20, 26);
+  text('◀ 🚪 PUERTA DE ENTRADA', 14, GEO.gapY + 0.5, 900, 9.5, 'rgba(138,90,28,0.85)', 'left');
+
+  // Bloques
+  const B = GEO.blocks;
+  drawBlock(B.comp, 'LADO IZQUIERDO · ACOMPAÑANTES', '#fdeee9', '#f2c4b5', '#b8492b');
+  drawBlock(B.grad, 'LADO DERECHO · GRADUANDOS', '#eaf0fa', '#bccbe9', '#24396b');
+  drawBlock(B.guestL, 'INVITADOS EN GENERAL', '#f3f1ed', '#ddd6cb', '#7d7468');
+  drawBlock(B.guestR, 'INVITADOS EN GENERAL', '#f3f1ed', '#ddd6cb', '#7d7468');
+
+  // Filas de pie (resaltadas)
+  const standingRows = new Set();
+  if (inCer) for (const p of state.people) if (p.status !== 'seated' && p.status !== 'waiting') standingRows.add(p.rec.row);
+  standingRows.forEach(r => {
+    const s1 = seatOf('comp', r, SP), s2 = seatOf('grad', r, SP);
+    ctx.fillStyle = 'rgba(233,185,73,0.25)';
+    rr(s1.x - 6, s1.y - 14, s2.x + s2.w - s1.x + 12, s1.h + 18, 8); ctx.fill();
+  });
+
+  // Etiquetas de fila en el pasillo central
+  for (const L of GEO.rowLabels) {
+    const st = standingRows.has(L.row);
+    text(`Fila ${L.row}`, centerX, L.y - (st ? 4 : 0), 800, L.guest ? 9 : 10, st ? '#8a6200' : (L.guest ? '#a0968a' : '#8a6a5a'));
+    if (st) text('de pie', centerX, L.y + 7, 900, 8.5, '#8a6200');
+  }
+
+  // Nombres de pasillos
+  ctx.save();
+  ctx.translate(GEO.leftOuterX, B.comp.y + B.comp.h / 2); ctx.rotate(-Math.PI / 2);
+  text('PASILLO IZQUIERDO', 0, 0, 800, 10, 'rgba(184,73,43,0.6)');
+  ctx.restore();
+  ctx.save();
+  ctx.translate(GEO.rightOuterX, B.grad.y + B.grad.h / 2); ctx.rotate(Math.PI / 2);
+  text('PASILLO DERECHO', 0, 0, 800, 10, 'rgba(36,57,107,0.6)');
+  ctx.restore();
+
+  if (state.showGuides) {
+    if (inCer) drawCeremonyGuides();
+    else if (ph === 'exit') drawExitGuides();
+    else if (ph === 'photo') drawPhotoGuides();
+    else if (ph !== 'done') drawEntryGuides();
+  }
+
+  const sel = state.hovered || state.locked;
+  const selRec = sel ? state.roster[sel - 1] : null;
+  if (selRec && (ph === 'entry' || ph === 'interlude')) drawEntryRoute(selRec);
+
+  // Sillas de graduandos / acompañantes
+  const occupied = new Set();
+  for (const p of state.people) if ((p.mode === 'seated' || p.mode === 'standing') && p.rowSeat) occupied.add(`${p.side}-${p.rec.row}-${p.rowSeat}`);
+  // Sillas vacías desde el inicio (graduando sin acompañante): siguen vacías y se corren con la fila
+  const reservedSet = new Set();
+  if (ph === 'entry' || ph === 'interlude' || ph === 'ceremony') {
+    for (const rec of state.roster) if (rec.ghost && rec.ghost.rowSeat) reservedSet.add(`${rec.row}-${rec.ghost.rowSeat}`);
+  }
+  for (const side of ['comp', 'grad']) {
+    for (let n = 1; n <= ROWS * SP; n++) {
+      const seat = GEO.seats[side][n];
+      const rec = state.roster[n - 1];
+      const reserved = side === 'comp' && reservedSet.has(`${seat.row}-${seat.seatNum}`);
+      drawChair(seat, rec, reserved, occupied.has(`${side}-${seat.row}-${seat.seatNum}`));
+    }
+  }
+
+  // Fotógrafo (foto grupal)
+  if (ph === 'photo') {
+    const fx = GEO.centerX, fyy = GEO.seats.grad[1].cy + 4;
+    drawPerson(fx, fyy, { s: 1, body: '#3a3a44', skin: '#e0ac69', hair: '#2e2e2e', legs: 'stand' });
+    ctx.fillStyle = '#111'; rr(fx - 5, fyy - 14, 10, 6, 1.5); ctx.fill();
+    ctx.fillStyle = '#7aa7ff'; ctx.beginPath(); ctx.arc(fx, fyy - 11, 1.8, 0, Math.PI * 2); ctx.fill();
+    text('📷 Fotógrafo', fx, fyy + 18, 900, 9, '#3a3a44');
+  }
+
+  // Invitados en general (ya sentados)
+  for (const g of GEO.guestSeats) {
+    ctx.fillStyle = '#ece9e4'; rr(g.x, g.y, g.w, g.h, 4); ctx.fill();
+    ctx.fillStyle = '#cfc8bd'; rr(g.x + 1.5, g.y + g.h - 4, g.w - 3, 3, 1.5); ctx.fill();
+    drawPerson(g.cx, g.cy + 1.5, { s: 0.7, body: g.body, skin: g.skin, hair: g.hair, alpha: 0.75 });
+  }
+
+  // Personas (las de más abajo se dibujan encima)
+  const visible = state.people.filter(p => p.mode !== 'out').sort((a, b) => a.y - b.y);
+  for (const p of visible) {
+    const base = { grad: p.side === 'grad', color: p.color, skin: p.skin, hair: p.hair, title: p.hasTitle };
+    if (p.mode === 'seated') drawPerson(p.x, p.y + 1.5, { ...base, s: 0.82 });
+    else if (p.mode === 'standing' || p.mode === 'hold') drawPerson(p.x, p.y - 3, { ...base, s: 0.88, legs: 'stand' });
+    else drawPerson(p.x, p.y, { ...base, s: 0.95, legs: 'walk', phase: p.phase });
+  }
+  for (const p of visible) {
+    const tag = (p.mode === 'move' && p.status !== 'standing') || p.status === 'ready';
+    if (tag) drawNameTag(p);
+  }
+
+  // Resaltado de la pareja seleccionada
+  if (selRec) {
+    for (const p of [selRec.g, selRec.c]) {
+      ctx.save();
+      ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2.6;
+      ctx.shadowColor = 'rgba(37,99,235,0.5)'; ctx.shadowBlur = 8;
+      if (p && p.mode !== 'out') {
+        ctx.beginPath(); ctx.arc(p.x, p.y - 3, 14, 0, Math.PI * 2); ctx.stroke();
+      } else {
+        const side = p ? p.side : 'comp';
+        const s = seatOf(side, selRec.row, selRec.seat);
+        rr(s.x - 3, s.y - 3, s.w + 6, s.h + 6, 6); ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  drawMCBubble();
+
+  if (state.flash > 0) {
+    ctx.fillStyle = `rgba(255,255,255,${Math.min(state.flash, 0.8)})`;
+    ctx.fillRect(GEO.PX0, 0, GEO.PW, H);
+  }
+}
+
+function drawExitGuides() {
+  const col = 'rgba(47,133,90,0.75)';
+  drawArrow(GEO.centerX, GEO.topCorridorY + 20, GEO.centerX, GEO.gapY - 4, col, true);
+  drawArrow(GEO.centerX - 30, GEO.gapY, -30, GEO.gapY, col, true);
+  text('Salida en parejas por el pasillo central', GEO.centerX + 30, GEO.gapY + 0.5, 900, 9.5, '#2f855a', 'left');
+}
+
+function drawPhotoGuides() {
+  const col = 'rgba(106,63,181,0.7)';
+  const rx = GEO.ramp.x + GEO.ramp.w / 2, sx = GEO.stairs.x + GEO.stairs.w / 2;
+  const sy = GEO.stageWalkY + 10, fy = GEO.photoFloorY + 18;
+  drawPolyline([{ x: 6, y: GEO.door2Y }, { x: rx, y: GEO.door2Y }, { x: rx, y: sy }, { x: sx, y: sy }, { x: sx, y: GEO.stairs.y + GEO.stairs.h + 4 }, { x: GEO.rightOuterX, y: GEO.topCorridorY }], col, 1.8, [6, 5]);
+  drawArrow(rx, GEO.door2Y - 6, rx, GEO.ramp.y + 8, col);
+  drawArrow(sx, GEO.stairs.y + 6, sx, GEO.stairs.y + GEO.stairs.h + 4, col);
+  const g = state.photo && PHOTO_GROUPS[state.photo.gi];
+  if (g && g.split) {
+    drawPolyline([{ x: rx + 30, y: fy }, { x: GEO.rightOuterX, y: fy }], 'rgba(106,63,181,0.4)', 1.5, [4, 5]);
+    text('Mitad del grupo: abajo, frente al escenario', GEO.centerX, GEO.photoFloorY + 30, 900, 9, '#6a3fb5');
+  }
+}
+
+function drawChair(seat, rec, reserved, occupied) {
+  if (reserved) {
+    ctx.save();
+    ctx.fillStyle = '#fff4d6'; ctx.strokeStyle = '#d9a441'; ctx.setLineDash([3, 2]); ctx.lineWidth = 1.4;
+    rr(seat.x, seat.y, seat.w, seat.h, 5); ctx.fill(); ctx.stroke();
+    ctx.restore();
+    text('vacía', seat.cx, seat.cy, 900, 7.5, '#a77a12');
+    return;
+  }
+  ctx.fillStyle = rec ? '#efe3d1' : '#f4efe6';
+  ctx.strokeStyle = rec ? '#cdb89a' : '#e4dccf';
+  ctx.lineWidth = 1.1;
+  rr(seat.x, seat.y, seat.w, seat.h, 5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = rec ? '#b08d63' : '#ddd2c2';
+  rr(seat.x + 1.5, seat.y + seat.h - 5, seat.w - 3, 4, 2); ctx.fill();
+  if (rec) { ctx.fillStyle = rec.color; ctx.fillRect(seat.x + 4, seat.y + 1.5, seat.w - 8, 2); }
+  if (!occupied) text(String(seat.seatNum), seat.cx, seat.cy - 1.5, 800, 9, '#8a7356');
+}
+
+function drawNameTag(p) {
+  const isG = p.side === 'grad';
+  const fs = uiSize(9.5, 8.5);
+  ctx.save();
+  ctx.font = font(800, fs);
+  const tw = ctx.measureText(p.label).width + fs;
+  const th = fs + 4.5;
+  const x = p.x - tw / 2, y = p.y - 16 - th;
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.strokeStyle = isG ? '#24396b' : '#d0603f';
+  ctx.lineWidth = 1.2;
+  rr(x, y, tw, th, th / 2); ctx.fill(); ctx.stroke();
+  ctx.restore();
+  text(p.label, p.x, y + th / 2 + 0.5, 800, fs, isG ? '#24396b' : '#b8492b');
+}
+
+function drawEntryGuides() {
+  const gold = 'rgba(201,146,46,0.75)';
+  drawPolyline([{ x: -40, y: GEO.gapY }, { x: GEO.centerX, y: GEO.gapY }], gold, 1.6, [5, 5]);
+  drawArrow(GEO.centerX, GEO.gapY, GEO.centerX, GEO.topCorridorY + 4, gold, true);
+  const lastLane = GEO.seats.comp[(ROWS - 1) * SP + 1].laneY;
+  drawPolyline([{ x: GEO.centerX, y: GEO.topCorridorY }, { x: GEO.leftOuterX, y: GEO.topCorridorY }, { x: GEO.leftOuterX, y: lastLane }], 'rgba(208,96,63,0.5)', 1.5, [5, 5]);
+  drawPolyline([{ x: GEO.centerX, y: GEO.topCorridorY }, { x: GEO.rightOuterX, y: GEO.topCorridorY }, { x: GEO.rightOuterX, y: lastLane }], 'rgba(36,57,107,0.45)', 1.5, [5, 5]);
+  for (let r = 1; r < ROWS; r++) {
+    const y = GEO.seats.grad[r * SP + 1].laneY;
+    drawArrow(GEO.leftOuterX, y, GEO.blocks.comp.x + 24, y, 'rgba(208,96,63,0.45)');
+    drawArrow(GEO.rightOuterX, y, GEO.blocks.grad.x + GEO.blocks.grad.w - 24, y, 'rgba(36,57,107,0.4)');
+  }
+}
+
+function drawCeremonyGuides() {
+  const col = 'rgba(106,63,181,0.75)';
+  const sx = GEO.stairs.x + GEO.stairs.w / 2;
+  const rx = GEO.ramp.x + GEO.ramp.w / 2;
+  const fy = GEO.topCorridorY - 6;
+  drawPolyline([{ x: GEO.centerX, y: fy }, { x: sx, y: fy }, { x: sx, y: GEO.stageWalkY }, { x: GEO.centerX, y: GEO.stageWalkY }], col, 1.8, [6, 5]);
+  drawArrow(sx, fy, sx, GEO.stairs.y - 2, col);
+  drawArrow(GEO.centerX + 120, GEO.stageWalkY, GEO.centerX + 30, GEO.stageWalkY, col);
+  drawPolyline([{ x: GEO.centerX, y: GEO.stageWalkY }, { x: 320, y: GEO.stageWalkY }, { x: 320, y: GEO.backWalkY }, { x: rx, y: GEO.backWalkY }, { x: rx, y: GEO.ramp.y + GEO.ramp.h }], col, 1.8, [6, 5]);
+  drawArrow(rx, GEO.ramp.y + 10, rx, GEO.ramp.y + GEO.ramp.h + 4, col);
+  drawArrow(260, GEO.backWalkY, 200, GEO.backWalkY, col);
+  // Regreso: acompañante por el costado izquierdo; graduando rodea por detrás y entra por la derecha
+  const back = 'rgba(106,63,181,0.45)';
+  const lx = GEO.leftOuterX + 2;
+  drawPolyline([{ x: rx, y: GEO.ramp.y + GEO.ramp.h }, { x: lx, y: GEO.topCorridorY + 6 }, { x: lx, y: GEO.gapY }, { x: GEO.rightOuterX, y: GEO.gapY }, { x: GEO.rightOuterX, y: GEO.topCorridorY + 20 }], back, 1.6, [4, 5]);
+  drawArrow(lx, GEO.gapY - 60, lx, GEO.gapY - 20, back);
+  drawArrow(GEO.rightOuterX, GEO.gapY - 20, GEO.rightOuterX, GEO.gapY - 60, back);
+  const label = 'Regreso del graduando: rodea por detrás y entra por la derecha →';
+  ctx.font = font(800, 9);
+  const lw = ctx.measureText(label).width + 12;
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  rr(GEO.centerX - lw / 2, GEO.gapY - 7, lw, 14, 7); ctx.fill();
+  text(label, GEO.centerX, GEO.gapY + 0.5, 800, 9, '#6a3fb5');
+}
+
+function drawEntryRoute(rec) {
+  drawPolyline(entryRoute(seatOf('grad', rec.row, rec.seat)), 'rgba(36,57,107,0.85)', 2.6, [7, 5]);
+  if (rec.hasComp) drawPolyline(entryRoute(seatOf('comp', rec.row, rec.seat)), 'rgba(208,96,63,0.9)', 2.6, [7, 5]);
+}
+
+// ===========================================================================
+// TEXTOS DE LA INTERFAZ
+// ===========================================================================
+function esc(s) { return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
+function plural(n, one, many) { return `${n} ${n === 1 ? one : many}`; }
+function rowsText(c) { return c.rowFrom === c.rowTo ? `Fila ${c.rowFrom}` : `Filas ${c.rowFrom}–${c.rowTo}`; }
+
+function setNow(color, chip, html) {
+  document.getElementById('now-career').innerHTML = `<span class="dot" style="background:${color}"></span><span>${esc(chip)}</span>`;
+  document.getElementById('now-text').innerHTML = html;
+}
+
+function renderBanner() {
+  const chip = document.getElementById('banner-chip');
+  const big = document.getElementById('banner-big');
+  const sub = document.getElementById('banner-sub');
+  const banner = document.getElementById('banner');
+  const bar = document.getElementById('banner-bar');
+  const nC = CAREER_INFO.length;
+  bar.style.width = '0';
+  const set = (cls, c, b, s, color) => { chip.className = 'chip ' + cls; chip.textContent = c; big.textContent = b; sub.textContent = s; banner.style.borderLeftColor = color; };
+
+  if (state.phase === 'done') {
+    set('live', 'Terminado', '¡Fin de la ceremonia! ¡Felicidades, Licenciados!', `Los ${TOTAL} licenciados recibieron su título, salieron por carrera y se tomaron la foto grupal.`, 'var(--green)');
+  } else if (state.phase === 'photo') {
+    const P = state.photo, g = P.gi >= 0 ? PHOTO_GROUPS[P.gi] : null;
+    if (g) set('cer', '📸 Foto grupal', `Foto: Licenciados en ${g.name}`,
+      `Grupo ${P.gi + 1} de ${PHOTO_GROUPS.length} · Entran por la puerta junto a la rampa, suben por la rampa y bajan por las escaleras de la derecha.`
+      + (g.split ? ' Grupo grande: la mitad arriba del escenario y la otra mitad abajo, en la misma foto.' : ''), g.color);
+    else set('cer', '📸 Foto grupal', 'Ahora, la foto grupal por carrera', 'Los licenciados vuelven a entrar, por carrera, por la puerta lateral junto a la rampa.', '#6a3fb5');
+  } else if (state.phase === 'exit') {
+    const X = state.exit;
+    if (X.ci >= 0 && X.ci < nC) {
+      const c = CAREER_INFO[X.ci];
+      set('live', 'Salida', `Salen: Licenciados en ${c.name}`,
+        `Carrera ${X.ci + 1} de ${nC} · Salen en parejas por el pasillo del centro hacia la misma puerta por la que entraron.`, c.color);
+    } else set('live', 'Salida', 'Ahora salen por carrera', 'En el mismo orden en que entraron, en parejas, por el pasillo del centro.', 'var(--green)');
+  } else if (state.phase === 'ceremony') {
+    const C = state.cer;
+    const last = C.lastCalled;
+    const first = C.waitQ[0] || (C.rows[C.activeRow] ? C.rows[C.activeRow].pairs[0] : null);
+    const color = last ? last.color : (first ? first.color : '#6a3fb5');
+    const b = last ? `Llamando a: ${last.surname}` : (C.activeRow ? `Fila ${C.activeRow}: de pie` : 'Comienza la entrega de títulos');
+    set('cer', 'Entrega de títulos', b,
+      `${C.activeRow ? `Fila ${C.activeRow} de ${ROWS} de pie · ` : ''}Suben por las escaleras (derecha), reciben el título en el centro y bajan por la rampa (izquierda), detrás de las banderas.`, color);
+  } else if (state.phase === 'interlude') {
+    set('live', 'Todos sentados', 'En breve: entrega de títulos', 'El maestro de ceremonia anunciará la entrega y se pondrá de pie la Fila 1.', 'var(--green)');
+  } else if (state.pause) {
+    const c = CAREER_INFO[state.pause.careerIdx];
+    set('pause', state.pause.first ? 'Comienza la entrada' : '⏸ Pausa breve',
+      (state.pause.first ? 'Primera carrera: ' : 'Siguiente carrera: ') + c.name,
+      `Carrera ${state.pause.careerIdx + 1} de ${nC} · ${plural(c.count, 'graduando', 'graduandos')} con sus acompañantes. Se preparan en la puerta…`, c.color);
+  } else if (state.currentCareer >= 0) {
+    const c = CAREER_INFO[state.currentCareer];
+    set('live', 'Entrando ahora', c.name,
+      `Carrera ${state.currentCareer + 1} de ${nC} · ${plural(c.count, 'graduando', 'graduandos')} · ${rowsText(c)}`
+      + (state.pendingCareer !== null ? ' · La siguiente carrera espera en la puerta hasta que todos estén sentados.' : ''), c.color);
+  } else {
+    set('', 'Listo', 'Presiona «Iniciar» para ver la entrada', 'Las carreras entran una por una, con una pequeña pausa entre cada una. Después viene la entrega de títulos.', '#c8b597');
+  }
+}
+
+function narrateEntry(rec) {
+  const c = CAREER_INFO[rec.careerIdx];
+  let html = rec.hasComp
+    ? `Entra <b class="tag-g">${esc(rec.gradLabel)}</b> (graduando) junto a <b class="tag-c">${esc(rec.compLabel)}</b> (acompañante).`
+    : `Entra <b class="tag-g">${esc(rec.gradLabel)}</b> (graduando).`;
+  html += `<span class="where">Van a la <b>Fila ${rec.row}</b>, <b>silla ${rec.seat}</b>: graduando a la derecha${rec.hasComp ? ', acompañante a la izquierda' : ''}.</span>`;
+  if (!rec.hasComp) html += `<span class="alone">Vino sin acompañante: la silla ${rec.seat} del lado izquierdo (Fila ${rec.row}) se queda vacía.</span>`;
+  setNow(c.color, c.name, html);
+}
+
+function narrateCer() {
+  const C = state.cer;
+  let html = state.mcText ? `<span class="mc">🎤 «${esc(state.mcText)}»</span>` : '';
+  const last = C.lastCalled;
+  if (last) {
+    html += `<b class="tag-g">${esc(last.gradLabel)}</b>${last.c ? ` y <b class="tag-c">${esc(last.compLabel)}</b>` : ''} caminan al frente, suben por las <b>escaleras de la derecha</b>, reciben el título en el centro y bajan por la <b>rampa</b>, detrás de las banderas.`;
+  } else {
+    html += `Toda la <b>Fila ${C.activeRow}</b> se pone de pie.`;
+  }
+  const w = (rec, txt) => `<span class="where">${txt}: <b class="tag-g">${esc(rec.gradLabel)}</b>${rec.c ? ` con <b class="tag-c">${esc(rec.compLabel)}</b>` : ' (sin acompañante)'} · Fila ${rec.row}.</span>`;
+  if (C.waitQ[0]) html += w(C.waitQ[0], 'Espera su llamado en el pasillo central');
+  if (C.waitQ[1]) html += w(C.waitQ[1], 'Detrás, ya listo para tomar su lugar');
+  if (C.waitQ[0]) html += `<span class="where">Los demás de la fila se corren hacia el centro.</span>`;
+  const ref = last || C.waitQ[0] || (C.rows[C.activeRow] ? C.rows[C.activeRow].pairs[0] : null);
+  setNow(ref ? ref.color : '#6a3fb5', `Fila ${ref ? ref.row : C.activeRow} de pie`, html);
+}
+
+const STATUS_TXT = {
+  waiting: 'Esperando turno', walking: 'Caminando a su silla', seated: 'Sentado', standing: 'De pie',
+  ready: 'Espera su llamado', called: 'Va al escenario', onstage: 'En el escenario', returning: 'Regresa a su fila',
+  exiting: 'Saliendo', outside: 'Afuera', tophoto: 'Va a la foto', photo: 'En la foto', leaving: 'Se retira'
+};
+let lastDetailKey = '';
+
+function refreshDetail(force) {
+  const n = state.hovered || state.locked;
+  const el = document.getElementById('detail');
+  if (!n || n > TOTAL) {
+    if (lastDetailKey !== 'empty' || force) {
+      el.innerHTML = '<div class="empty-msg">Escribe un apellido arriba o toca a una persona o silla en el plano para ver dónde se sientan el graduando y su acompañante.</div>';
+      lastDetailKey = 'empty';
+    }
+    return;
+  }
+  const rec = state.roster[n - 1];
+  const key = `${n}-${rec.g.status}-${rec.c ? rec.c.status : 'x'}-${rec.g.hasTitle}`;
+  if (key === lastDetailKey && !force) return;
+  lastDetailKey = key;
+  const c = CAREER_INFO[rec.careerIdx];
+  const entry = rec.row === 1
+    ? `<b>Al entrar:</b> por la puerta del costado izquierdo, por el pasillo central hasta el frente, y desde ahí <b>directo a la Fila 1</b>.`
+    : `<b>Al entrar:</b> por la puerta del costado izquierdo y por el pasillo central hasta el frente. Ahí se separan: el graduando va por el <b>pasillo derecho</b>${rec.hasComp ? ' y el acompañante por el <b>pasillo izquierdo</b>' : ''}; bajan hasta la <b>Fila ${rec.row}</b> y entran desde la orilla.`;
+  const pg = photoGroupOf(rec.careerIdx);
+  const fin = `<b>Al final:</b> cuando llaman a su carrera salen uno tras otro, en pareja, por el pasillo del centro hacia la misma puerta por la que entraron. Si se llama antes a otra carrera de su fila, se ponen de pie y se corren hacia el pasillo a esperar. Para la <b>foto grupal</b> («Licenciados en ${esc(pg.name)}») el graduando entra por la <b>puerta junto a la rampa</b>, sube por la rampa y baja por las <b>escaleras de la derecha</b>.`
+    + (pg.split ? ' Como es un grupo grande, la mitad posa arriba del escenario y la otra mitad abajo, en la misma foto.' : '');
+  const waitAt = rec.row <= 2 ? `a la altura de su fila` : `al frente, a la altura de la Fila 1`;
+  const cer = `<b>En la entrega de títulos:</b> cuando la Fila ${rec.row} se pone de pie y les toca, ${rec.hasComp ? 'salen al pasillo central y esperan juntos' : 'sale al pasillo central y espera'} ${waitAt}. Suben por las <b>escaleras de la derecha</b>, reciben el título en el <b>centro</b> y bajan por la <b>rampa de la izquierda</b> (detrás de las banderas). `
+    + (rec.hasComp ? `El <span class="tag-c">acompañante</span> regresa por el <b>costado izquierdo</b> a su fila y queda de pie en la orilla. ` : '')
+    + `El <span class="tag-g">graduando</span> sigue por el costado izquierdo, <b>rodea por detrás</b> todas las filas y entra a su fila por el <b>costado derecho</b>. Mientras la fila avanza se van corriendo hasta quedar de nuevo en la <b>silla ${rec.seat}</b>.`;
+  el.innerHTML = `
+    <div class="now-career"><span class="dot" style="background:${c.color}"></span><span>${esc(c.name)}</span></div>
+    <div class="person-box g">
+      <span class="state ${rec.g.status}">${STATUS_TXT[rec.g.status]}</span>
+      <div class="who" style="color:var(--navy)">🎓 Graduando</div>
+      <div class="name">${esc(rec.gradLabel)}</div>
+      <div class="seat">Lado derecho · <b>Fila ${rec.row}</b> · <b>Silla ${rec.seat}</b></div>
+      ${rec.g.hasTitle ? '<div class="title-ok">📜 Ya recibió su título</div>' : ''}
+    </div>
+    ${rec.c ? `
+    <div class="person-box c">
+      <span class="state ${rec.c.status}">${STATUS_TXT[rec.c.status]}</span>
+      <div class="who" style="color:var(--coral)">Acompañante</div>
+      <div class="name">${esc(rec.compLabel)}</div>
+      <div class="seat">Lado izquierdo · <b>Fila ${rec.row}</b> · <b>Silla ${rec.seat}</b></div>
+    </div>` : `
+    <div class="person-box none">
+      <div class="who" style="color:#8a6200">Sin acompañante (ejemplo)</div>
+      <div class="seat">La silla ${rec.seat} del lado izquierdo, Fila ${rec.row}, <b>queda vacía</b>.</div>
+    </div>`}
+    <div class="route">${entry}</div>
+    <div class="route">${cer}</div>
+    <div class="route">${fin}</div>`;
+}
+
+function renderCareers() {
+  const el = document.getElementById('careers');
+  const ph = state.phase;
+  el.innerHTML = CAREER_INFO.map((c, i) => {
+    const members = state.roster.filter(r => r.careerIdx === i);
+    let cls = '', st;
+    if (ph === 'photo' || ph === 'done') {
+      const g = state.photo && state.photo.gi >= 0 ? PHOTO_GROUPS[state.photo.gi] : null;
+      if (members.every(r => r.g.photoDone)) { cls = 'done'; st = '✓ Foto tomada'; }
+      else if (g && g.careers.includes(i)) { cls = 'entering'; st = '📸 En la foto…'; }
+      else st = 'Espera su foto';
+    } else if (ph === 'exit') {
+      const out = members.every(r => r.g.mode === 'out' && (!r.c || r.c.mode === 'out'));
+      if (out) { cls = 'done'; st = '✓ Ya salió'; }
+      else if (state.exit.ci === i) { cls = 'entering'; st = 'Saliendo…'; }
+      else st = members.some(r => r.g.status === 'standing') ? 'De pie, junto al pasillo' : 'Sentados';
+    } else if (ph === 'ceremony') {
+      const k = members.filter(r => r.g.hasTitle).length;
+      const active = members.some(r => r.g.status !== 'seated' && !r.g.hasTitle);
+      if (k === c.count) { cls = 'done'; st = '✓ Títulos entregados'; }
+      else if (k > 0 || active) { cls = 'entering'; st = `Títulos: ${k} de ${c.count}`; }
+      else st = 'Espera su fila';
+    } else {
+      const seated = members.every(r => r.g.status === 'seated' && (!r.c || r.c.status === 'seated'));
+      const started = members.some(r => r.g.status !== 'waiting');
+      if (seated) { cls = 'done'; st = '✓ Ya entró'; }
+      else if (started) { cls = 'entering'; st = 'Entrando…'; }
+      else st = (state.pause && state.pause.careerIdx === i) || state.pendingCareer === i ? 'Espera en la puerta' : 'En espera';
+    }
+    return `<div class="career-row ${cls}" style="color:${c.color}">
+      <span class="num">${i + 1}</span>
+      <span class="dot" style="background:${c.color}"></span>
+      <div><div class="nm">${esc(c.name)}</div><div class="info">${plural(c.count, 'graduando', 'graduandos')} · ${rowsText(c)}${photoNote(i)}</div></div>
+      <span class="st">${st}</span>
+    </div>`;
+  }).join('');
+}
+
+function photoNote(i) {
+  const g = photoGroupOf(i);
+  if (g.careers.length > 1) return ` · Foto junto con ${esc(g.careers.filter(k => k !== i).map(k => CAREER_INFO[k].name).join(', '))}`;
+  if (g.split) return ' · Foto: mitad arriba y mitad abajo';
+  return '';
+}
+
+function soloCount() { return state.roster.filter(r => !r.hasComp).length; }
+
+function updateStats() {
+  const expComp = TOTAL - soloCount();
+  document.getElementById('stat-grad').innerHTML = `${state.gradSeated} <small>de ${TOTAL}</small>`;
+  document.getElementById('stat-comp').innerHTML = `${state.compSeated} <small>de ${expComp}</small>`;
+  document.getElementById('stat-solo').textContent = soloCount();
+  document.getElementById('stat-title').innerHTML = `${state.titles} <small>de ${TOTAL}</small>`;
+}
+
+// ===========================================================================
+// BÚSQUEDA
+// ===========================================================================
+function norm(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim(); }
+
+function renderResults() {
+  let q = norm(document.getElementById('search').value);
+  const box = document.getElementById('results');
+  if (q.startsWith('a ')) q = q.slice(2).trim();
+  if (!q) { box.innerHTML = ''; return; }
+  const hits = state.roster.filter(r => norm(r.surname).startsWith(q)).slice(0, 8);
+  if (!hits.length) { box.innerHTML = '<div class="empty-msg">No encontramos ese apellido.</div>'; return; }
+  box.innerHTML = hits.map(r => `<button data-n="${r.n}">
+      <span class="dot" style="background:${r.color}"></span>${esc(r.surname)}
+      <span class="meta">${esc(CAREER_INFO[r.careerIdx].name)}<br>Fila ${r.row} · Silla ${r.seat}</span>
+    </button>`).join('');
+}
+
+document.getElementById('search').addEventListener('input', renderResults);
+document.getElementById('results').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-n]');
+  if (!b) return;
+  state.locked = Number(b.dataset.n);
+  refreshDetail(true);
+});
+
+// ===========================================================================
+// INTERACCIÓN CON EL PLANO
+// ===========================================================================
+function hitTest(ev) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (ev.clientX - rect.left - view.tx) / view.s;
+  const y = (ev.clientY - rect.top - view.ty) / view.s;
+  let best = null, bd = Math.max(13, 16 / view.s);
+  for (const p of state.people) {
+    if (p.mode === 'out') continue;
+    const d = Math.hypot(p.x - x, p.y - 2 - y);
+    if (d < bd) { bd = d; best = p.n; }
+  }
+  if (best) return best;
+  if (state.phase === 'entry' || state.phase === 'interlude') {
+    for (const side of ['comp', 'grad']) {
+      for (let n = 1; n <= TOTAL; n++) {
+        const s = GEO.seats[side][n];
+        if (x >= s.x - 2 && x <= s.x + s.w + 2 && y >= s.y - 2 && y <= s.y + s.h + 2) return n;
+      }
+    }
+  }
+  return null;
+}
+
+// Gestos: un dedo arrastra (si está acercado), dos dedos acercan/alejan, un toque selecciona
+const pointers = new Map();
+let gesture = null;
+
+canvas.addEventListener('pointerdown', (e) => {
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 1) {
+    gesture = { type: 'pan', sx: e.clientX, sy: e.clientY, cx: view.cx, cy: view.cy, moved: false };
+  } else if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    gesture = { type: 'pinch', d: Math.hypot(a.x - b.x, a.y - b.y) || 1, zoom: view.zoom, moved: true };
+  }
+});
+
+canvas.addEventListener('pointermove', (e) => {
+  if (pointers.has(e.pointerId)) {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (gesture && gesture.type === 'pan' && pointers.size === 1) {
+      const dx = e.clientX - gesture.sx, dy = e.clientY - gesture.sy;
+      if (!gesture.moved && Math.hypot(dx, dy) > 6) gesture.moved = true;
+      if (gesture.moved && view.zoom > 1.01) {
+        setFollow(false);
+        view.cx = gesture.cx - dx / view.s;
+        view.cy = gesture.cy - dy / view.s;
+        clampView();
+      }
+    } else if (gesture && gesture.type === 'pinch' && pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      const r = canvas.getBoundingClientRect();
+      setFollow(false);
+      zoomAt((a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, gesture.zoom * Math.hypot(a.x - b.x, a.y - b.y) / gesture.d);
+    }
+    return;
+  }
+  if (e.pointerType === 'touch') return;
+  const n = hitTest(e);
+  if (n !== state.hovered) {
+    state.hovered = n;
+    canvas.style.cursor = n ? 'pointer' : (view.zoom > 1.01 ? 'grab' : 'default');
+    refreshDetail();
+  }
+});
+
+function endPointer(e) {
+  if (!pointers.delete(e.pointerId)) return;
+  if (gesture && gesture.type === 'pan' && !gesture.moved && pointers.size === 0 && e.type === 'pointerup') {
+    const n = hitTest(e);
+    state.locked = n && state.locked !== n ? n : null;
+    refreshDetail(true);
+  }
+  if (pointers.size === 0) gesture = null;
+  else if (pointers.size === 1) {
+    const [p] = [...pointers.values()];
+    gesture = { type: 'pan', sx: p.x, sy: p.y, cx: view.cx, cy: view.cy, moved: true };
+  }
+}
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('pointerleave', (e) => {
+  if (e.pointerType !== 'touch' && state.hovered !== null) { state.hovered = null; refreshDetail(); }
+});
+// En computadora: Ctrl + rueda (o pellizco en el touchpad) para acercar
+canvas.addEventListener('wheel', (e) => {
+  if (!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  const r = canvas.getBoundingClientRect();
+  setFollow(false);
+  zoomAt(e.clientX - r.left, e.clientY - r.top, view.zoom * Math.exp(-e.deltaY * 0.01));
+}, { passive: false });
+
+document.getElementById('z-in').addEventListener('click', () => { setFollow(false); zoomAt(view.cw / 2, view.ch / 2, view.zoom * 1.5); });
+document.getElementById('z-out').addEventListener('click', () => { setFollow(false); zoomAt(view.cw / 2, view.ch / 2, view.zoom / 1.5); });
+document.getElementById('z-fit').addEventListener('click', () => {
+  setFollow(false);
+  view.zoom = 1; [view.cx, view.cy] = regionCenter(); clampView();
+});
+document.getElementById('z-follow').addEventListener('click', () => setFollow(!view.follow));
+
+// Pantalla completa: solo el plano, mostrando del pasillo de entrada hacia el escenario
+function setFS(on) {
+  document.querySelector('.plan-card').classList.toggle('fs', on);
+  document.body.classList.toggle('fs-on', on);
+  view.region = on ? fsRegion() : fullRegion();
+  view.zoom = 1;
+  [view.cx, view.cy] = regionCenter();
+  setFollow(on ? false : isMobile());
+  document.getElementById('z-fs').textContent = on ? '✕ Salir' : '⛶ Pantalla completa';
+  setupCanvas();
+  requestAnimationFrame(setupCanvas);   // de nuevo cuando el navegador termine de acomodar la pantalla
+}
+document.getElementById('z-fs').addEventListener('click', async () => {
+  const card = document.querySelector('.plan-card');
+  if (!isFS()) {
+    setFS(true);
+    try {
+      if (card.requestFullscreen) await card.requestFullscreen({ navigationUI: 'hide' });
+      else if (card.webkitRequestFullscreen) card.webkitRequestFullscreen();
+    } catch (err) { /* sin pantalla completa real (p. ej. iPhone): se usa la vista ampliada */ }
+    try { await screen.orientation.lock('landscape'); } catch (err) { /* no todos los teléfonos lo permiten */ }
+  } else {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
+    } catch (err) { /* nada */ }
+    setFS(false);
+  }
+});
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => {
+  const inFS = document.fullscreenElement || document.webkitFullscreenElement;
+  if (!inFS && isFS()) setFS(false); else setupCanvas();
+}));
+document.getElementById('z-play').addEventListener('click', () => btnPlay.click());
+
+// ===========================================================================
+// CONTROLES
+// ===========================================================================
+const btnPlay = document.getElementById('btn-play');
+
+btnPlay.addEventListener('click', () => {
+  if (state.phase === 'done') return;
+  if (!state.running) {
+    state.running = true;
+    state.paused = false;
+    if (state.phase === 'entry' && state.queueIdx === 0 && !state.pause) startPause(0, CONFIG.firstPause, true);
+    btnPlay.textContent = '⏸ Pausar';
+    renderCareers();
+  } else {
+    state.paused = !state.paused;
+    btnPlay.textContent = state.paused ? '▶ Continuar' : '⏸ Pausar';
+  }
+});
+
+function reset() {
+  Object.assign(state, {
+    phase: 'entry', running: false, paused: false, queueIdx: 0, wait: 0, pause: null, pendingCareer: null,
+    currentCareer: -1, timer: 0, gradSeated: 0, compSeated: 0, titles: 0,
+    cer: null, exit: null, photo: null, flash: 0, mc: null, mcText: ''
+  });
+  buildRoster();
+  updateLobby(0, true);
+  btnPlay.disabled = false;
+  btnPlay.textContent = '▶ Iniciar';
+  setNow('#c8b597', 'Aún no empieza', 'Cuando presiones «Iniciar» verás aquí quién está entrando y a qué silla va.');
+  updateStats(); renderBanner(); renderCareers(); renderResults(); refreshDetail(true);
+}
+
+// Sienta a todos en su silla de una vez
+function seatAll() {
+  state.queueIdx = TOTAL;
+  state.gradSeated = 0; state.compSeated = 0;
+  for (const rec of state.roster) {
+    for (const p of [rec.g, rec.c]) {
+      if (!p) continue;
+      const s = seatOf(p.side, rec.row, rec.seat);
+      Object.assign(p, { x: s.cx, y: s.cy, mode: 'seated', status: 'seated', rowSeat: rec.seat });
+      if (p.side === 'grad') state.gradSeated++; else state.compSeated++;
+    }
+  }
+  updateStats();
+}
+
+// Ir directo a una parte de la ceremonia (para presentar sin esperar)
+function jumpTo(target) {
+  reset();
+  seatAll();
+  if (target === 'cer') {
+    toInterlude(2);
+  } else {
+    state.roster.forEach(r => { r.g.hasTitle = true; r.g.label = 'Lic. ' + r.surname; });
+    state.titles = TOTAL;
+    updateStats();
+    if (target === 'exit') startExit();
+    else {
+      state.people.forEach(p => { p.mode = 'out'; p.status = 'outside'; p.rowSeat = null; });
+      startPhoto();
+    }
+  }
+  btnPlay.textContent = '▶ Continuar';
+  refreshDetail(true);
+}
+
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('jump').addEventListener('change', (e) => {
+  if (e.target.value) jumpTo(e.target.value);
+  e.target.value = '';
+});
+document.getElementById('chk-guides').addEventListener('change', e => { state.showGuides = e.target.checked; });
+document.querySelectorAll('.speed button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.speed button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  state.speed = Number(b.dataset.speed);
+}));
+
+// Íconos SVG de la leyenda (mismas figuras del plano)
+function svgPerson(grad) {
+  return grad
+    ? `<path d="M-5.5 7V0q0-3.5 3.5-3.5h4q3.5 0 3.5 3.5v7z" fill="#24396b"/><path d="M-2.8 -3L-1.6 6M2.8 -3L1.6 6" stroke="#2a9d8f" stroke-width="1.8" stroke-linecap="round"/><circle cy="-7.5" r="4" fill="#e0ac69"/><rect x="-3" y="-11.5" width="6" height="2.4" fill="#1a2747"/><path d="M-7 -11.5L0 -14.5L7 -11.5L0 -9z" fill="#1a2747"/><path d="M0 -11.8L5.2 -11.2L5.8 -7" stroke="#e9b949" fill="none"/>`
+    : `<path d="M-5.5 7V0q0-3.5 3.5-3.5h4q3.5 0 3.5 3.5v7z" fill="#e07a5f"/><circle cy="-7.5" r="4" fill="#f1c9a0"/><path d="M-4.3 -8.2A4.3 4.3 0 0 1 4.3 -8.2z" fill="#3b2a20"/>`;
+}
+['ico-grad', 'lg-grad'].forEach(id => document.getElementById(id).innerHTML = svgPerson(true));
+['ico-comp', 'lg-comp'].forEach(id => document.getElementById(id).innerHTML = svgPerson(false));
+
+// ===========================================================================
+// BUCLE
+// ===========================================================================
+function loop(t) {
+  if (!state.lastTime) state.lastTime = t;
+  const dt = Math.min((t - state.lastTime) / 1000, 0.05);
+  state.lastTime = t;
+  update(dt);
+  if (state.pause && state.running && state.phase === 'entry' && isFinite(state.wait)) {
+    document.getElementById('banner-bar').style.width = `${Math.max(0, state.wait / state.pause.total) * 100}%`;
+  }
+  updateCamera(dt);
+  const zp = document.getElementById('z-play');
+  const zLabel = state.phase === 'done' ? '✓' : (state.running && !state.paused ? '⏸' : '▶');
+  if (zp.textContent !== zLabel) zp.textContent = zLabel;
+  render();
+  requestAnimationFrame(loop);
+}
+
+let lastW = 0;
+window.addEventListener('resize', () => {
+  setupCanvas();
+  // Al cambiar entre teléfono y computadora, ajusta el modo "seguir la acción"
+  const m = isMobile();
+  if (!isFS() && (lastW < 760) !== m) setFollow(m);
+  lastW = window.innerWidth;
+});
+setupCanvas();
+lastW = window.innerWidth;
+setFollow(isMobile());
+reset();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
